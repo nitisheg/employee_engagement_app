@@ -149,94 +149,102 @@ class _ResultCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       result.quizTitle,
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isGoodScore
-                        ? AppColors.success.withValues(alpha: 0.1)
-                        : AppColors.warning.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '${(percentage * 100).round()}%',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
                       color: isGoodScore
-                          ? AppColors.success
-                          : AppColors.warning,
+                          ? AppColors.success.withValues(alpha: 0.1)
+                          : AppColors.warning.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '${(percentage * 100).round()}%',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isGoodScore
+                            ? AppColors.success
+                            : AppColors.warning,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Score details
-            Row(
-              children: [
-                Expanded(
-                  child: _ScoreItem(
-                    label: 'Correct',
-                    value: '${result.correctAnswers}/${result.totalQuestions}',
-                    icon: Icons.check_circle_rounded,
-                    color: AppColors.success,
-                  ),
-                ),
-                Expanded(
-                  child: _ScoreItem(
-                    label: 'Points',
-                    value: '${result.pointsEarned}',
-                    icon: Icons.stars_rounded,
-                    color: AppColors.gold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Progress bar
-            LinearProgressIndicator(
-              value: percentage,
-              backgroundColor: AppColors.surface,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                isGoodScore ? AppColors.success : AppColors.warning,
+                ],
               ),
-            ),
-            const SizedBox(height: 8),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _ScoreItem(
+                      label: 'Correct',
+                      value:
+                          '${result.correctAnswers}/${result.totalQuestions}',
+                      icon: Icons.check_circle_rounded,
+                      color: AppColors.success,
+                    ),
+                  ),
+                  Expanded(
+                    child: _ScoreItem(
+                      label: 'Score',
+                      value: '${result.scoredPoints}/${result.totalQuestions}',
+                      icon: Icons.thumb_up_rounded,
+                      color: AppColors.secondary,
+                    ),
+                  ),
+                  Expanded(
+                    child: _ScoreItem(
+                      label: 'Points',
+                      value: '${result.pointsEarned}',
+                      icon: Icons.stars_rounded,
+                      color: AppColors.gold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
 
-            // Date
-            Row(
-              children: [
-                Icon(
-                  Icons.calendar_today_rounded,
-                  size: 14,
-                  color: AppColors.textSecondary,
+              // Progress bar
+              LinearProgressIndicator(
+                value: percentage,
+                backgroundColor: AppColors.surface,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  isGoodScore ? AppColors.success : AppColors.warning,
                 ),
-                const SizedBox(width: 4),
-                Text(
-                  _formatDate(result.submittedAt),
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
+              ),
+              const SizedBox(height: 8),
+
+              // Date
+              Row(
+                children: [
+                  Icon(
+                    Icons.calendar_today_rounded,
+                    size: 14,
                     color: AppColors.textSecondary,
                   ),
-                ),
-              ],
-            ),
-          ],
+                  const SizedBox(width: 4),
+                  Text(
+                    _formatDate(result.submittedAt),
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
-    ));
+    );
   }
 
   String _formatDate(DateTime date) {

@@ -168,12 +168,14 @@ class QuizAnswerResult {
 class QuizSubmitResult {
   final int correctAnswers;
   final int totalQuestions;
+  final int scoredPoints;
   final int pointsEarned;
   final List<QuizAnswerResult> results;
 
   const QuizSubmitResult({
     required this.correctAnswers,
     required this.totalQuestions,
+    required this.scoredPoints,
     required this.pointsEarned,
     required this.results,
   });
@@ -191,8 +193,14 @@ class QuizSubmitResult {
     final totalQuestions =
         (json['totalQuestions'] ??
                 json['total_questions'] ??
-                json['total_points'] ??
+                json['total'] ??
                 0)
+            as int;
+    final scoredPoints =
+        (json['scored_points'] ??
+                json['score'] ??
+                json['total_points'] ??
+                correctAnswers)
             as int;
     final pointsEarned =
         (json['pointsEarned'] ??
@@ -204,6 +212,7 @@ class QuizSubmitResult {
     return QuizSubmitResult(
       correctAnswers: correctAnswers,
       totalQuestions: totalQuestions,
+      scoredPoints: scoredPoints,
       pointsEarned: pointsEarned,
       results: (json['results'] as List? ?? [])
           .map((r) => QuizAnswerResult.fromJson(r as Map<String, dynamic>))
@@ -219,6 +228,7 @@ class QuizMyResult {
   final String quizTitle;
   final int correctAnswers;
   final int totalQuestions;
+  final int scoredPoints;
   final int pointsEarned;
   final DateTime submittedAt;
 
@@ -227,6 +237,7 @@ class QuizMyResult {
     required this.quizTitle,
     required this.correctAnswers,
     required this.totalQuestions,
+    required this.scoredPoints,
     required this.pointsEarned,
     required this.submittedAt,
   });
@@ -239,10 +250,25 @@ class QuizMyResult {
       id: (json['_id'] ?? json['id'] ?? '') as String,
       quizTitle: (json['quizTitle'] ?? json['quiz_title'] ?? '') as String,
       correctAnswers:
-          (json['correctAnswers'] ?? json['correct_answers'] ?? 0) as int,
+          (json['correctAnswers'] ??
+                  json['correct_answers'] ??
+                  json['score'] ??
+                  0)
+              as int,
       totalQuestions:
-          (json['totalQuestions'] ?? json['total_questions'] ?? 0) as int,
-      pointsEarned: (json['pointsEarned'] ?? json['points_earned'] ?? 0) as int,
+          (json['totalQuestions'] ??
+                  json['total_questions'] ??
+                  json['total_questions'] ??
+                  json['total'] ??
+                  0)
+              as int,
+      scoredPoints: (json['scored_points'] ?? json['score'] ?? 0) as int,
+      pointsEarned:
+          (json['pointsEarned'] ??
+                  json['points_earned'] ??
+                  json['total_points'] ??
+                  0)
+              as int,
       submittedAt: json['submittedAt'] != null
           ? DateTime.tryParse(json['submittedAt'] as String) ?? DateTime.now()
           : DateTime.now(),
