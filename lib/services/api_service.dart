@@ -111,7 +111,9 @@ class AuthApiService {
   Future<Map<String, dynamic>> register({
     required String name,
     required String email,
-    required String password, required String employeeId, required String department,
+    required String password,
+    required String employeeId,
+    required String department,
   }) async {
     final resp = await _dio.post<Map<String, dynamic>>(
       '/api/auth/user/register',
@@ -216,7 +218,34 @@ class QuizApiService {
       '/api/quizzes/$quizId/take',
       queryParameters: {'page': page, 'limit': limit},
     );
-    return resp.data!;
+
+    if (resp.data == null) {
+      throw Exception('Quiz attempt response body is null');
+    }
+
+    final raw = resp.data!;
+
+    // Support payloads like {data: { ... }}
+    if (raw.containsKey('data') && raw['data'] is Map<String, dynamic>) {
+      return raw['data'] as Map<String, dynamic>;
+    }
+
+    // Support payload like the example you provided:
+    // {success, alreadySubmitted, quiz, pagination}
+    if (raw.containsKey('quiz') && raw['quiz'] is Map<String, dynamic>) {
+      final quizPayload = raw['quiz'] as Map<String, dynamic>;
+      final pagination = raw['pagination'] as Map<String, dynamic>? ?? {};
+
+      return {
+        'quizId': quizPayload['_id'] ?? quizPayload['id'] ?? quizId,
+        'title': quizPayload['title'] ?? '',
+        'questions': quizPayload['questions'] ?? [],
+        'page': pagination['page'] ?? page,
+        'totalPages': pagination['totalPages'] ?? 1,
+      };
+    }
+
+    return raw;
   }
 
   Future<Map<String, dynamic>> submitQuiz(

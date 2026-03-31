@@ -35,7 +35,9 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
   @override
   void initState() {
     super.initState();
-    _loadQuestions();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadQuestions();
+    });
   }
 
   Future<void> _loadQuestions() async {
@@ -357,62 +359,63 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
                             child: Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? AppColors.primary
+                                      : AppColors.surface,
+                                  width: 2,
+                                ),
                                 color: isSelected
-                                    ? AppColors.primary
-                                    : AppColors.surface,
-                                width: 2,
+                                    ? AppColors.primary.withValues(alpha: 0.05)
+                                    : Colors.white,
                               ),
-                              color: isSelected
-                                  ? AppColors.primary.withValues(alpha: 0.05)
-                                  : Colors.white,
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 32,
-                                  height: 32,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: isSelected
-                                        ? AppColors.primary
-                                        : AppColors.surface,
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      String.fromCharCode(
-                                        65 + index,
-                                      ), // A, B, C, D...
-                                      style: GoogleFonts.poppins(
-                                        color: isSelected
-                                            ? Colors.white
-                                            : AppColors.textSecondary,
-                                        fontWeight: FontWeight.w600,
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 32,
+                                    height: 32,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: isSelected
+                                          ? AppColors.primary
+                                          : AppColors.surface,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        String.fromCharCode(
+                                          65 + index,
+                                        ), // A, B, C, D...
+                                        style: GoogleFonts.poppins(
+                                          color: isSelected
+                                              ? Colors.white
+                                              : AppColors.textSecondary,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Text(
-                                    option,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 16,
-                                      color: AppColors.textPrimary,
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Text(
+                                      option,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 16,
+                                        color: AppColors.textPrimary,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                if (isSelected)
-                                  Icon(
-                                    Icons.check_circle_rounded,
-                                    color: AppColors.primary,
-                                  ),
-                              ],
+                                  if (isSelected)
+                                    Icon(
+                                      Icons.check_circle_rounded,
+                                      color: AppColors.primary,
+                                    ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      ).animate().fadeIn(delay: (index * 100).ms));
+                        ).animate().fadeIn(delay: (index * 100).ms),
+                      );
                     },
                   ),
                 ),

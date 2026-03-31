@@ -65,14 +65,22 @@ class QuizProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> startAttempt(String quizId, {int page = 1, int limit = 10}) async {
+  Future<bool> startAttempt(
+    String quizId, {
+    int page = 1,
+    int limit = 10,
+  }) async {
     _loadingAttempt = true;
     _errorMessage = null;
     _answers.clear();
     _lastResult = null;
     notifyListeners();
     try {
-      final data = await _quizApi.getQuizAttempt(quizId, page: page, limit: limit);
+      final data = await _quizApi.getQuizAttempt(
+        quizId,
+        page: page,
+        limit: limit,
+      );
       _currentAttempt = QuizAttemptData.fromJson(data);
       _loadingAttempt = false;
       notifyListeners();
@@ -119,11 +127,38 @@ class QuizProvider extends ChangeNotifier {
     _submitting = true;
     _errorMessage = null;
     notifyListeners();
+
+    // Build submit payload using selected option text (expected by API)
+    final attempt = _currentAttempt;
+    final payloadAnswers = <Map<String, dynamic>>[];
+    if (attempt != null) {
+      for (final answer in _answers) {
+        final question = attempt.questions.firstWhere(
+          (q) => q.id == answer.questionId,
+          orElse: () => QuizAttemptQuestion(
+            id: answer.questionId,
+            question: '',
+            options: [],
+          ),
+        );
+
+        String selectedOption = answer.selectedOption.toString();
+        if (answer.selectedOption >= 0 &&
+            answer.selectedOption < question.options.length) {
+          selectedOption = question.options[answer.selectedOption];
+        }
+
+        payloadAnswers.add({
+          'question_id': answer.questionId,
+          'selected_option': selectedOption,
+        });
+      }
+    } else {
+      payloadAnswers.addAll(_answers.map((a) => a.toJson()));
+    }
+
     try {
-      final data = await _quizApi.submitQuiz(
-        quizId,
-        _answers.map((a) => a.toJson()).toList(),
-      );
+      final data = await _quizApi.submitQuiz(quizId, payloadAnswers);
       final resultJson = data['result'] as Map<String, dynamic>? ?? data;
       _lastResult = QuizSubmitResult.fromJson(resultJson);
       _submitting = false;

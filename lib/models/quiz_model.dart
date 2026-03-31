@@ -7,6 +7,10 @@ class ActiveQuiz {
   final String id;
   final String title;
   final String? description;
+  final String? startDateTime;
+  final String? endDateTime;
+  final bool isLive;
+  final bool submitted;
   final int totalQuestions;
   final int pointsPerQuestion;
   final bool isAttempted;
@@ -15,6 +19,10 @@ class ActiveQuiz {
     required this.id,
     required this.title,
     this.description,
+    this.startDateTime,
+    this.endDateTime,
+    this.isLive = false,
+    this.submitted = false,
     required this.totalQuestions,
     required this.pointsPerQuestion,
     required this.isAttempted,
@@ -25,6 +33,10 @@ class ActiveQuiz {
       id: (json['_id'] ?? json['id'] ?? '') as String,
       title: (json['title'] ?? '') as String,
       description: json['description'] as String?,
+      startDateTime: json['start_datetime'] as String?,
+      endDateTime: json['end_datetime'] as String?,
+      isLive: (json['is_live'] ?? false) as bool,
+      submitted: (json['submitted'] ?? false) as bool,
       totalQuestions: (json['totalQuestions'] ?? 0) as int,
       pointsPerQuestion: (json['pointsPerQuestion'] ?? 20) as int,
       isAttempted: (json['isAttempted'] ?? false) as bool,
@@ -48,10 +60,29 @@ class QuizAttemptQuestion {
   });
 
   factory QuizAttemptQuestion.fromJson(Map<String, dynamic> json) {
+    final options = <String>[];
+
+    if (json['options'] is List) {
+      options.addAll(List<String>.from(json['options'] as List));
+    } else {
+      if ((json['option_a'] ?? json['optionA']) != null) {
+        options.add((json['option_a'] ?? json['optionA']) as String);
+      }
+      if ((json['option_b'] ?? json['optionB']) != null) {
+        options.add((json['option_b'] ?? json['optionB']) as String);
+      }
+      if ((json['option_c'] ?? json['optionC']) != null) {
+        options.add((json['option_c'] ?? json['optionC']) as String);
+      }
+      if ((json['option_d'] ?? json['optionD']) != null) {
+        options.add((json['option_d'] ?? json['optionD']) as String);
+      }
+    }
+
     return QuizAttemptQuestion(
       id: (json['_id'] ?? json['id'] ?? '') as String,
-      question: (json['question'] ?? '') as String,
-      options: List<String>.from(json['options'] as List? ?? []),
+      question: (json['question_text'] ?? json['question'] ?? '') as String,
+      options: options,
       timeLimitSeconds: json['timeLimitSeconds'] as int?,
     );
   }
@@ -73,14 +104,20 @@ class QuizAttemptData {
   });
 
   factory QuizAttemptData.fromJson(Map<String, dynamic> json) {
+    final quizSection = json['quiz'] as Map<String, dynamic>?;
+    final safeJson = quizSection ?? json;
+
     return QuizAttemptData(
-      quizId: (json['quizId'] ?? '') as String,
-      title: (json['title'] ?? '') as String,
-      questions: (json['questions'] as List? ?? [])
+      quizId:
+          (safeJson['quizId'] ?? safeJson['_id'] ?? safeJson['id'] ?? '')
+              as String,
+      title: (safeJson['title'] ?? '') as String,
+      questions: (safeJson['questions'] as List? ?? [])
           .map((q) => QuizAttemptQuestion.fromJson(q as Map<String, dynamic>))
           .toList(),
-      page: (json['page'] ?? 1) as int,
-      totalPages: (json['totalPages'] ?? 1) as int,
+      page: (json['page'] ?? json['pagination']?['page'] ?? 1) as int,
+      totalPages:
+          (json['totalPages'] ?? json['pagination']?['totalPages'] ?? 1) as int,
     );
   }
 }
@@ -91,15 +128,12 @@ class QuizAnswer {
   final String questionId;
   final int selectedOption;
 
-  const QuizAnswer({
-    required this.questionId,
-    required this.selectedOption,
-  });
+  const QuizAnswer({required this.questionId, required this.selectedOption});
 
   Map<String, dynamic> toJson() => {
-        'question_id': questionId,
-        'selected_option': selectedOption,
-      };
+    'question_id': questionId,
+    'selected_option': selectedOption,
+  };
 }
 
 // ── Submit result ─────────────────────────────────────────────────────────────
@@ -141,10 +175,29 @@ class QuizSubmitResult {
       totalQuestions > 0 ? correctAnswers / totalQuestions : 0;
 
   factory QuizSubmitResult.fromJson(Map<String, dynamic> json) {
+    final correctAnswers =
+        (json['correctAnswers'] ??
+                json['correct_answers'] ??
+                json['score'] ??
+                0)
+            as int;
+    final totalQuestions =
+        (json['totalQuestions'] ??
+                json['total_questions'] ??
+                json['total_points'] ??
+                0)
+            as int;
+    final pointsEarned =
+        (json['pointsEarned'] ??
+                json['points_earned'] ??
+                json['total_points'] ??
+                0)
+            as int;
+
     return QuizSubmitResult(
-      correctAnswers: (json['correctAnswers'] ?? json['correct_answers'] ?? 0) as int,
-      totalQuestions: (json['totalQuestions'] ?? json['total_questions'] ?? 0) as int,
-      pointsEarned: (json['pointsEarned'] ?? json['points_earned'] ?? 0) as int,
+      correctAnswers: correctAnswers,
+      totalQuestions: totalQuestions,
+      pointsEarned: pointsEarned,
       results: (json['results'] as List? ?? [])
           .map((r) => QuizAnswerResult.fromJson(r as Map<String, dynamic>))
           .toList(),
@@ -178,8 +231,10 @@ class QuizMyResult {
     return QuizMyResult(
       id: (json['_id'] ?? json['id'] ?? '') as String,
       quizTitle: (json['quizTitle'] ?? json['quiz_title'] ?? '') as String,
-      correctAnswers: (json['correctAnswers'] ?? json['correct_answers'] ?? 0) as int,
-      totalQuestions: (json['totalQuestions'] ?? json['total_questions'] ?? 0) as int,
+      correctAnswers:
+          (json['correctAnswers'] ?? json['correct_answers'] ?? 0) as int,
+      totalQuestions:
+          (json['totalQuestions'] ?? json['total_questions'] ?? 0) as int,
       pointsEarned: (json['pointsEarned'] ?? json['points_earned'] ?? 0) as int,
       submittedAt: json['submittedAt'] != null
           ? DateTime.tryParse(json['submittedAt'] as String) ?? DateTime.now()

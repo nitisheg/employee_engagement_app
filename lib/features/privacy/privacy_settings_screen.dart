@@ -17,9 +17,25 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<NotificationProvider>().fetchPrivacySettings();
     });
+  }
+
+  Future<void> _updateSetting(
+    NotificationProvider provider,
+    PrivacySettingsModel? current,
+    PrivacySettingsModel updated,
+  ) async {
+    if (current == null) return;
+
+    final success = await provider.updatePrivacySettings(updated);
+
+    if (!success && mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Failed to update setting')));
+    }
   }
 
   @override
@@ -49,13 +65,19 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (provider.privacySettings == null) {
+          if (provider.errorMessage != null) {
             return Center(
               child: Text(
-                'Failed to load privacy settings',
-                style: GoogleFonts.poppins(),
+                provider.errorMessage!,
+                style: GoogleFonts.poppins(color: Colors.red),
               ),
             );
+          }
+
+          final settings = provider.privacySettings;
+
+          if (settings == null) {
+            return const Center(child: CircularProgressIndicator());
           }
 
           return SingleChildScrollView(
@@ -63,7 +85,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Profile Privacy Section
+                /// Profile Privacy
                 _SettingSection(
                   title: 'Profile Privacy',
                   description: 'Control who can see your profile and activity',
@@ -72,34 +94,32 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                       icon: Icons.visibility_outlined,
                       title: 'Show Profile Publicly',
                       subtitle: 'Let others see your profile',
-                      value:
-                          provider.privacySettings?.showProfilePublicly ?? true,
+                      value: settings.showProfilePublicly,
                       onChanged: (value) {
-                        final updated = provider.privacySettings!.copyWith(
+                        final updated = settings.copyWith(
                           showProfilePublicly: value,
                         );
-                        provider.updatePrivacySettings(updated);
+                        _updateSetting(provider, settings, updated);
                       },
                     ),
                     _PrivacyToggleTile(
                       icon: Icons.show_chart_outlined,
                       title: 'Show on Leaderboard',
                       subtitle: 'Your activity visible in rankings',
-                      value:
-                          provider.privacySettings?.showActivityOnLeaderboard ??
-                          true,
+                      value: settings.showActivityOnLeaderboard,
                       onChanged: (value) {
-                        final updated = provider.privacySettings!.copyWith(
+                        final updated = settings.copyWith(
                           showActivityOnLeaderboard: value,
                         );
-                        provider.updatePrivacySettings(updated);
+                        _updateSetting(provider, settings, updated);
                       },
                     ),
                   ],
-                ).animate().fadeIn(delay: 100.ms).slideY(begin: -0.1, end: 0),
+                ).animate().fadeIn(delay: 100.ms),
+
                 const SizedBox(height: 20),
 
-                // Communication Settings Section
+                /// Communication
                 _SettingSection(
                   title: 'Communication',
                   description: 'Manage how others can reach you',
@@ -108,34 +128,32 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                       icon: Icons.mail_outline_rounded,
                       title: 'Messages from Anyone',
                       subtitle: 'Allow messages from all users',
-                      value:
-                          provider.privacySettings?.allowMessagesFromAnyone ??
-                          true,
+                      value: settings.allowMessagesFromAnyone,
                       onChanged: (value) {
-                        final updated = provider.privacySettings!.copyWith(
+                        final updated = settings.copyWith(
                           allowMessagesFromAnyone: value,
                         );
-                        provider.updatePrivacySettings(updated);
+                        _updateSetting(provider, settings, updated);
                       },
                     ),
                     _PrivacyToggleTile(
                       icon: Icons.group_add_outlined,
                       title: 'Group Invites',
                       subtitle: 'Receive invitations to join groups',
-                      value:
-                          provider.privacySettings?.enableGroupInvites ?? true,
+                      value: settings.enableGroupInvites,
                       onChanged: (value) {
-                        final updated = provider.privacySettings!.copyWith(
+                        final updated = settings.copyWith(
                           enableGroupInvites: value,
                         );
-                        provider.updatePrivacySettings(updated);
+                        _updateSetting(provider, settings, updated);
                       },
                     ),
                   ],
-                ).animate().fadeIn(delay: 150.ms).slideY(begin: -0.1, end: 0),
+                ).animate().fadeIn(delay: 150.ms),
+
                 const SizedBox(height: 20),
 
-                // Notifications Settings Section
+                /// Notifications
                 _SettingSection(
                   title: 'Notifications',
                   description: 'Control how you receive notifications',
@@ -144,80 +162,68 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                       icon: Icons.notifications_outlined,
                       title: 'Enable Notifications',
                       subtitle: 'Receive all notifications',
-                      value:
-                          provider.privacySettings?.enableNotifications ?? true,
+                      value: settings.enableNotifications,
                       onChanged: (value) {
-                        final updated = provider.privacySettings!.copyWith(
+                        final updated = settings.copyWith(
                           enableNotifications: value,
                         );
-                        provider.updatePrivacySettings(updated);
+                        _updateSetting(provider, settings, updated);
                       },
                     ),
                     _PrivacyToggleTile(
                       icon: Icons.email_outlined,
                       title: 'Email Notifications',
                       subtitle: 'Receive email notification updates',
-                      value:
-                          provider.privacySettings?.enableEmailNotifications ??
-                          true,
+                      value: settings.enableEmailNotifications,
                       onChanged: (value) {
-                        final updated = provider.privacySettings!.copyWith(
+                        final updated = settings.copyWith(
                           enableEmailNotifications: value,
                         );
-                        provider.updatePrivacySettings(updated);
+                        _updateSetting(provider, settings, updated);
                       },
                     ),
                     _PrivacyToggleTile(
                       icon: Icons.notifications_active_outlined,
                       title: 'Push Notifications',
                       subtitle: 'Receive push notifications on your device',
-                      value:
-                          provider.privacySettings?.enablePushNotifications ??
-                          true,
+                      value: settings.enablePushNotifications,
                       onChanged: (value) {
-                        final updated = provider.privacySettings!.copyWith(
+                        final updated = settings.copyWith(
                           enablePushNotifications: value,
                         );
-                        provider.updatePrivacySettings(updated);
+                        _updateSetting(provider, settings, updated);
                       },
                     ),
                     _PrivacyToggleTile(
                       icon: Icons.emoji_events_outlined,
                       title: 'Achievement Notifications',
                       subtitle: 'Notify when you earn achievements',
-                      value:
-                          provider
-                              .privacySettings
-                              ?.enableAchievementNotifications ??
-                          true,
+                      value: settings.enableAchievementNotifications,
                       onChanged: (value) {
-                        final updated = provider.privacySettings!.copyWith(
+                        final updated = settings.copyWith(
                           enableAchievementNotifications: value,
                         );
-                        provider.updatePrivacySettings(updated);
+                        _updateSetting(provider, settings, updated);
                       },
                     ),
                     _PrivacyToggleTile(
                       icon: Icons.flash_on_outlined,
                       title: 'Challenge Notifications',
                       subtitle: 'Notify about new challenges',
-                      value:
-                          provider
-                              .privacySettings
-                              ?.enableChallengeNotifications ??
-                          true,
+                      value: settings.enableChallengeNotifications,
                       onChanged: (value) {
-                        final updated = provider.privacySettings!.copyWith(
+                        final updated = settings.copyWith(
                           enableChallengeNotifications: value,
                         );
-                        provider.updatePrivacySettings(updated);
+                        _updateSetting(provider, settings, updated);
                       },
                     ),
                   ],
-                ).animate().fadeIn(delay: 200.ms).slideY(begin: -0.1, end: 0),
+                ).animate().fadeIn(delay: 200.ms),
+
                 const SizedBox(height: 20),
 
-                // Data & Privacy Section
+                /// Data & Privacy
                 _SettingSection(
                   title: 'Data & Privacy',
                   description: 'Control data collection and usage',
@@ -227,21 +233,20 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                       title: 'Data Collection',
                       subtitle:
                           'Allow us to collect usage data for improvements',
-                      value:
-                          provider.privacySettings?.allowDataCollection ??
-                          false,
+                      value: settings.allowDataCollection,
                       onChanged: (value) {
-                        final updated = provider.privacySettings!.copyWith(
+                        final updated = settings.copyWith(
                           allowDataCollection: value,
                         );
-                        provider.updatePrivacySettings(updated);
+                        _updateSetting(provider, settings, updated);
                       },
                     ),
                   ],
-                ).animate().fadeIn(delay: 250.ms).slideY(begin: -0.1, end: 0),
+                ).animate().fadeIn(delay: 250.ms),
+
                 const SizedBox(height: 24),
 
-                // Info message
+                /// Info
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -253,11 +258,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                   ),
                   child: Row(
                     children: [
-                      Icon(
-                        Icons.info_outlined,
-                        color: AppColors.success,
-                        size: 20,
-                      ),
+                      Icon(Icons.info_outlined, color: AppColors.success),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
@@ -271,7 +272,6 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                     ],
                   ),
                 ).animate().fadeIn(delay: 300.ms),
-                const SizedBox(height: 24),
               ],
             ),
           );
@@ -281,6 +281,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
   }
 }
 
+/// SECTION WIDGET
 class _SettingSection extends StatelessWidget {
   final String title;
   final String description;
@@ -299,35 +300,15 @@ class _SettingSection extends StatelessWidget {
       children: [
         Text(
           title,
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
+          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 4),
-        Text(
-          description,
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            color: AppColors.textSecondary,
-          ),
-        ),
+        Text(description, style: GoogleFonts.poppins(fontSize: 12)),
         const SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: AppColors.textSecondary.withValues(alpha: 0.1),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
           ),
           child: Column(
             children: List.generate(
@@ -335,12 +316,7 @@ class _SettingSection extends StatelessWidget {
               (index) => Column(
                 children: [
                   children[index],
-                  if (index < children.length - 1)
-                    Divider(
-                      height: 1,
-                      color: AppColors.textSecondary.withValues(alpha: 0.1),
-                      indent: 60,
-                    ),
+                  if (index < children.length - 1) const Divider(height: 1),
                 ],
               ),
             ),
@@ -351,6 +327,7 @@ class _SettingSection extends StatelessWidget {
   }
 }
 
+/// TOGGLE TILE
 class _PrivacyToggleTile extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -368,51 +345,14 @@ class _PrivacyToggleTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Icon(icon, color: AppColors.primary, size: 20),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                Text(
-                  subtitle,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeColor: AppColors.primary,
-            inactiveThumbColor: AppColors.textSecondary.withValues(alpha: 0.5),
-          ),
-        ],
+    return ListTile(
+      leading: Icon(icon, color: AppColors.primary),
+      title: Text(title, style: GoogleFonts.poppins()),
+      subtitle: Text(subtitle, style: GoogleFonts.poppins(fontSize: 12)),
+      trailing: Switch(
+        value: value,
+        onChanged: onChanged,
+        activeColor: AppColors.primary,
       ),
     );
   }

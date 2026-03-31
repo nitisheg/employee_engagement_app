@@ -18,6 +18,19 @@ import '../attendance/attendance_screen.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
+  String _getTimeBasedGreeting() {
+    final now = DateTime.now();
+    final hour = now.hour;
+
+    if (hour >= 5 && hour < 12) {
+      return 'Good Morning';
+    } else if (hour >= 12 && hour < 17) {
+      return 'Good Afternoon';
+    } else {
+      return 'Good Evening';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
@@ -74,13 +87,14 @@ class HomeScreen extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "Good Afternoon, ${user?.name.split(' ').first ?? 'Employee'}! 👋",
+                                      "${_getTimeBasedGreeting()}, ${user?.name.split(' ').first ?? 'Employee'}! 👋",
                                       style: GoogleFonts.poppins(
                                         color: Colors.white,
                                         fontSize: 16,
                                         fontWeight: FontWeight.w700,
                                       ),
                                     ),
+
                                     Text(
                                       'Ready to earn points today?',
                                       style: GoogleFonts.poppins(

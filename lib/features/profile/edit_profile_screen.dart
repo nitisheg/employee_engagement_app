@@ -576,7 +576,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                               foregroundColor: Colors.white,
                                             ),
                                             child: Text(
-                                              'Update Password',
+                                              'Update',
                                               style: GoogleFonts.poppins(),
                                             ),
                                           );
