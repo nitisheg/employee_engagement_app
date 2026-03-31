@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/Nitish.DESKTOP-HHEFMUA/Documents/GitHub/employee_engagement_app -type f -not -path */.dart_tool/* -not -path */.idea/* -not -path */.*)",
+      "Bash(flutter pub:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(flutter build:*)",
+      "Bash(head -10 grep -n \"Scaffold\\\\|body:\" \"c:/Users/Nitish.DESKTOP-HHEFMUA/Documents/GitHub/employee_engagement_app/lib/features/games/sudoku_screen.dart\")",
+      "Bash(head -10 grep -n \"Scaffold\\\\|body:\" \"c:/Users/Nitish.DESKTOP-HHEFMUA/Documents/GitHub/employee_engagement_app/lib/features/projects/project_referral_screen.dart\")",
+      "Bash(head -10 grep -n \"Scaffold\\\\|body:\" \"c:/Users/Nitish.DESKTOP-HHEFMUA/Documents/GitHub/employee_engagement_app/lib/features/games/party_games/name_pick_screen.dart\")",
+      "Bash(head -10 grep -n \"Scaffold\\\\|body:\" \"c:/Users/Nitish.DESKTOP-HHEFMUA/Documents/GitHub/employee_engagement_app/lib/features/games/party_games/spin_wheel_screen.dart\")",
+      "Bash(head -10 grep -n \"Scaffold\\\\|body:\" \"c:/Users/Nitish.DESKTOP-HHEFMUA/Documents/GitHub/employee_engagement_app/lib/features/games/party_games/bottle_spin_screen.dart\")",
+      "Bash(head -10 grep -n \"Scaffold\\\\|body:\" \"c:/Users/Nitish.DESKTOP-HHEFMUA/Documents/GitHub/employee_engagement_app/lib/features/games/party_games/zip_game_screen.dart\")",
+      "Bash(head -10 grep -n \"Scaffold\\\\|body:\" \"c:/Users/Nitish.DESKTOP-HHEFMUA/Documents/GitHub/employee_engagement_app/lib/features/games/party_games/group_creator_screen.dart\")",
+      "Bash(head -10 grep -n \"Scaffold\\\\|body:\" \"c:/Users/Nitish.DESKTOP-HHEFMUA/Documents/GitHub/employee_engagement_app/lib/features/main/main_nav_screen.dart\")",
+      "Bash(tail -5 grep -n \"SliverToBoxAdapter\\\\|SliverList\\\\|SliverPadding\\\\|height: 100\\\\|SizedBox\\(height: 1\" \"c:/Users/Nitish.DESKTOP-HHEFMUA/Documents/GitHub/employee_engagement_app/lib/features/certifications/certifications_screen.dart\")",
+      "Bash(tail -5 grep -n \"SliverToBoxAdapter\\\\|SliverList\\\\|SliverPadding\\\\|height: 100\\\\|SizedBox\\(height: 1\" \"c:/Users/Nitish.DESKTOP-HHEFMUA/Documents/GitHub/employee_engagement_app/lib/features/projects/project_referral_screen.dart\")",
+      "Bash(find c:UsersNitish.DESKTOP-HHEFMUADocumentsGitHubemployee_engagement_app -maxdepth 2 -type f \\\\\\(-name *.env -o -name *.env.* -o -name *config* -o -name *.json \\\\\\))",
+      "Bash(tree -L 3 c:UsersNitish.DESKTOP-HHEFMUADocumentsGitHubemployee_engagement_applib -I *.lock)"
+    ]
+  }
+}
