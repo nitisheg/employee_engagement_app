@@ -72,7 +72,6 @@ class QuizProvider extends ChangeNotifier {
   }) async {
     _loadingAttempt = true;
     _errorMessage = null;
-    _answers.clear();
     _lastResult = null;
     notifyListeners();
     try {

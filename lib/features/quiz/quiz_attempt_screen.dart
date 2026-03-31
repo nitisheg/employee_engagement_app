@@ -73,10 +73,11 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
     final attempt = provider.currentAttempt;
     if (attempt == null || attempt.questions.isEmpty) return;
 
-    final currentQuestion = attempt.questions[_currentPage - 1];
-    final timeLimit = currentQuestion.timeLimitSeconds ?? 30;
+    final totalTime = attempt.questions
+        .map((q) => q.timeLimitSeconds ?? 30)
+        .reduce((value, element) => value + element);
 
-    setState(() => _timeLeft = timeLimit);
+    setState(() => _timeLeft = totalTime);
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_timeLeft <= 1) {
@@ -88,82 +89,56 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
     });
   }
 
-  void _handleTimeout() {
+  void _handleTimeout() async {
     final provider = context.read<QuizProvider>();
     final attempt = provider.currentAttempt;
     if (attempt == null || attempt.questions.isEmpty) return;
 
-    final currentQuestion = attempt.questions[_currentPage - 1];
-    provider.selectAnswer(currentQuestion.id, -1); // -1 for timeout/no answer
+    // Find first unanswered question and mark as timeout answer
+    final unanswered = attempt.questions
+        .where((q) => provider.getSelectedAnswer(q.id) == null)
+        .toList();
 
-    _nextQuestion();
+    if (unanswered.isNotEmpty) {
+      provider.selectAnswer(unanswered.first.id, -1);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Time up: recording unanswered question.')),
+      );
+
+      // continue countdown until full quiz time is done
+      _startTimer();
+      return;
+    }
+
+    // If everything answered, submit automatically
+    await _submitQuiz();
   }
 
-  void _selectAnswer(int optionIndex) {
-    _timer?.cancel();
-
+  void _selectAnswer(String questionId, int optionIndex) {
     final provider = context.read<QuizProvider>();
-    final attempt = provider.currentAttempt;
-    if (attempt == null || attempt.questions.isEmpty) return;
-
-    final currentQuestion = attempt.questions[_currentPage - 1];
-    provider.selectAnswer(currentQuestion.id, optionIndex);
-
-    _nextQuestion();
+    provider.selectAnswer(questionId, optionIndex);
   }
 
-  void _nextQuestion() async {
+  Future<void> _submitQuiz() async {
     final provider = context.read<QuizProvider>();
     final attempt = provider.currentAttempt;
     if (attempt == null) return;
 
-    if (_currentPage >= attempt.totalPages) {
-      // Submit quiz
-      setState(() => _loading = true);
-      final success = await provider.submitQuiz(widget.quizId);
+    setState(() => _loading = true);
+    final success = await provider.submitQuiz(widget.quizId);
 
-      if (mounted) {
-        setState(() => _loading = false);
+    if (mounted) {
+      setState(() => _loading = false);
 
-        if (success && provider.lastResult != null) {
-          _showResultDialog(provider.lastResult!);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(provider.errorMessage ?? 'Failed to submit quiz'),
-              backgroundColor: AppColors.error,
-            ),
-          );
-        }
-      }
-    } else {
-      // Load next page
-      setState(() {
-        _currentPage++;
-        _loading = true;
-      });
-
-      final success = await provider.startAttempt(
-        widget.quizId,
-        page: _currentPage,
-        limit: _limit,
-      );
-
-      if (mounted) {
-        setState(() => _loading = false);
-
-        if (success) {
-          _startTimer();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                provider.errorMessage ?? 'Failed to load next questions',
-              ),
-              backgroundColor: AppColors.error,
-            ),
-          );
-        }
+      if (success && provider.lastResult != null) {
+        _showResultDialog(provider.lastResult!);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(provider.errorMessage ?? 'Failed to submit quiz'),
+            backgroundColor: AppColors.error,
+          ),
+        );
       }
     }
   }
@@ -301,22 +276,25 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
             return const Center(child: Text('No questions available'));
           }
 
-          final currentQuestion = attempt.questions[_currentPage - 1];
+          final totalQuestions = attempt.totalQuestions;
+          final answeredCount = provider.answers.length;
 
           return Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Progress indicator
+                // Progress indicator for total quiz
                 LinearProgressIndicator(
-                  value: _currentPage / attempt.totalPages,
+                  value: totalQuestions > 0
+                      ? answeredCount / totalQuestions
+                      : 0,
                   backgroundColor: AppColors.surface,
                   valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Question ${_currentPage} of ${attempt.questions.length * attempt.totalPages}',
+                  'Answered $answeredCount of $totalQuestions questions',
                   style: GoogleFonts.poppins(
                     color: AppColors.textSecondary,
                     fontSize: 12,
@@ -324,99 +302,108 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
                 ),
                 const SizedBox(height: 24),
 
-                // Question
-                AppCard(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Text(
-                      currentQuestion.question,
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Options
                 Expanded(
                   child: ListView.builder(
-                    itemCount: currentQuestion.options.length,
-                    itemBuilder: (context, index) {
-                      final option = currentQuestion.options[index];
-                      final isSelected =
-                          provider.getSelectedAnswer(currentQuestion.id) ==
-                          index;
+                    itemCount: attempt.questions.length,
+                    itemBuilder: (context, qIndex) {
+                      final question = attempt.questions[qIndex];
+                      final selectedAnswer = provider.getSelectedAnswer(
+                        question.id,
+                      );
 
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        child: AppCard(
-                          child: InkWell(
-                            onTap: () => _selectAnswer(index),
-                            borderRadius: BorderRadius.circular(12),
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? AppColors.primary
-                                      : AppColors.surface,
-                                  width: 2,
-                                ),
-                                color: isSelected
-                                    ? AppColors.primary.withValues(alpha: 0.05)
-                                    : Colors.white,
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 32,
-                                    height: 32,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: isSelected
-                                          ? AppColors.primary
-                                          : AppColors.surface,
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        String.fromCharCode(
-                                          65 + index,
-                                        ), // A, B, C, D...
-                                        style: GoogleFonts.poppins(
-                                          color: isSelected
-                                              ? Colors.white
-                                              : AppColors.textSecondary,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Text(
-                                      option,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 16,
-                                        color: AppColors.textPrimary,
-                                      ),
-                                    ),
-                                  ),
-                                  if (isSelected)
-                                    Icon(
-                                      Icons.check_circle_rounded,
-                                      color: AppColors.primary,
-                                    ),
-                                ],
-                              ),
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Q${qIndex + 1}. ${question.question}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
                             ),
                           ),
-                        ).animate().fadeIn(delay: (index * 100).ms),
+                          const SizedBox(height: 8),
+                          ...question.options.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final option = entry.value;
+                            final isSelected = selectedAnswer == index;
+
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 10),
+                              child: AppCard(
+                                child: InkWell(
+                                  onTap: () =>
+                                      _selectAnswer(question.id, index),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(14),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? AppColors.primary
+                                            : AppColors.surface,
+                                        width: 2,
+                                      ),
+                                      color: isSelected
+                                          ? AppColors.primary.withOpacity(0.1)
+                                          : Colors.white,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          '${String.fromCharCode(65 + index)}.',
+                                          style: GoogleFonts.poppins(
+                                            fontWeight: FontWeight.bold,
+                                            color: isSelected
+                                                ? AppColors.primary
+                                                : AppColors.textSecondary,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            option,
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 15,
+                                              color: AppColors.textPrimary,
+                                            ),
+                                          ),
+                                        ),
+                                        if (isSelected)
+                                          const Icon(
+                                            Icons.check_circle,
+                                            color: Colors.green,
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                          const SizedBox(height: 16),
+                        ],
                       );
                     },
+                  ),
+                ),
+
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: answeredCount == totalQuestions
+                        ? _submitQuiz
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: AppColors.primary,
+                      textStyle: const TextStyle(fontSize: 16),
+                    ),
+                    child: Text(
+                      answeredCount == totalQuestions
+                          ? 'Submit Quiz'
+                          : 'Answer all $totalQuestions questions',
+                    ),
                   ),
                 ),
               ],

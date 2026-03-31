@@ -94,6 +94,7 @@ class QuizAttemptData {
   final List<QuizAttemptQuestion> questions;
   final int page;
   final int totalPages;
+  final int totalQuestions;
 
   const QuizAttemptData({
     required this.quizId,
@@ -101,23 +102,29 @@ class QuizAttemptData {
     required this.questions,
     required this.page,
     required this.totalPages,
+    required this.totalQuestions,
   });
 
   factory QuizAttemptData.fromJson(Map<String, dynamic> json) {
     final quizSection = json['quiz'] as Map<String, dynamic>?;
     final safeJson = quizSection ?? json;
 
+    final questionList = (safeJson['questions'] as List? ?? [])
+        .map((q) => QuizAttemptQuestion.fromJson(q as Map<String, dynamic>))
+        .toList();
+
     return QuizAttemptData(
       quizId:
           (safeJson['quizId'] ?? safeJson['_id'] ?? safeJson['id'] ?? '')
               as String,
       title: (safeJson['title'] ?? '') as String,
-      questions: (safeJson['questions'] as List? ?? [])
-          .map((q) => QuizAttemptQuestion.fromJson(q as Map<String, dynamic>))
-          .toList(),
+      questions: questionList,
       page: (json['page'] ?? json['pagination']?['page'] ?? 1) as int,
       totalPages:
           (json['totalPages'] ?? json['pagination']?['totalPages'] ?? 1) as int,
+      totalQuestions:
+          (json['total'] ?? json['pagination']?['total'] ?? questionList.length)
+              as int,
     );
   }
 }
