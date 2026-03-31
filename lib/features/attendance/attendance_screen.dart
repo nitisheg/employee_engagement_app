@@ -1,345 +1,372 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/widgets/common_widgets.dart';
+import 'package:table_calendar/table_calendar.dart';
+import '../../core/constants/color_constants.dart';
+import '../../core/enums/attendance_module.dart';
 
-class AttendanceScreen extends StatefulWidget {
-  const AttendanceScreen({super.key});
+class AttendanceView extends StatefulWidget {
+  const AttendanceView({super.key});
 
   @override
-  State<AttendanceScreen> createState() => _AttendanceScreenState();
+  State<AttendanceView> createState() => _AttendanceViewState();
 }
 
-class _AttendanceScreenState extends State<AttendanceScreen> {
-  bool _checkedIn = false;
-  String? _checkInTime;
+class _AttendanceViewState extends State<AttendanceView> {
+  DateTime _focusedDay = DateTime.now();
+  DateTime? _selectedDay;
+  DateTime _currentTime = DateTime.now();
+  Timer? _timer;
 
-  final List<Map<String, dynamic>> _history = [
-    {'date': 'Mon, Mar 24', 'time': '09:02 AM', 'pts': 10, 'status': true},
-    {'date': 'Tue, Mar 25', 'time': '08:58 AM', 'pts': 10, 'status': true},
-    {'date': 'Wed, Mar 26', 'time': '09:15 AM', 'pts': 10, 'status': true},
-    {'date': 'Thu, Mar 27', 'time': '--', 'pts': 0, 'status': false},
+  final Map<DateTime, AttendanceRecord> _attendanceData = {};
+  final List<DateTime> _holidays = [
+    DateTime.utc(2025, 10, 2),
+    DateTime.utc(2025, 12, 25),
   ];
 
-  final List<Map<String, dynamic>> _weekDays = [
-    {'day': 'M', 'checked': true},
-    {'day': 'T', 'checked': true},
-    {'day': 'W', 'checked': true},
-    {'day': 'T', 'checked': true},
-    {'day': 'F', 'checked': true},
-    {'day': 'S', 'checked': false},
-    {'day': 'S', 'checked': false},
-  ];
+  int _points = 0;
+  int _streak = 0;
 
-  void _handleCheckIn() {
-    setState(() {
-      _checkedIn = true;
-      final now = TimeOfDay.now();
-      _checkInTime =
-          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')} ${now.period.name.toUpperCase()}';
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      setState(() {
+        _currentTime = DateTime.now();
+      });
     });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  AttendanceRecord _getOrCreateTodayRecord() {
+    final today = DateTime.utc(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+    );
+
+    if (!_attendanceData.containsKey(today)) {
+      _attendanceData[today] = AttendanceRecord(
+        date: today,
+        status: AttendanceStatus.absent,
+      );
+    }
+    return _attendanceData[today]!;
+  }
+
+  void _punchIn() {
+    final record = _getOrCreateTodayRecord();
+    if (record.punchIn != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Already punched in today!')),
+      );
+      return;
+    }
+
+    setState(() {
+      record.punchIn = DateTime.now();
+      record.status = AttendanceStatus.present;
+      _points += 10;
+      _streak += 1;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Punch In Success! +10 points. Streak: $_streak')),
+    );
+  }
+
+  void _punchOut() {
+    final record = _getOrCreateTodayRecord();
+    if (record.punchIn == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('You must punch in first!')));
+      return;
+    }
+    if (record.punchOut != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Already punched out today!')),
+      );
+      return;
+    }
+
+    setState(() {
+      record.punchOut = DateTime.now();
+      final workedHours = record.workDuration.inMinutes / 60.0;
+
+      if (workedHours >= 9) {
+        record.status = AttendanceStatus.present;
+        _points += 20;
+      } else if (workedHours > 0) {
+        record.status = AttendanceStatus.halfDay;
+        _points += 10;
+      } else {
+        record.status = AttendanceStatus.absent;
+        _streak = 0;
+      }
+    });
+
+    final duration = record.workDuration;
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Checked in successfully! +10 pts',
-            style: GoogleFonts.poppins()),
-        backgroundColor: AppColors.success,
+        content: Text(
+          'Work Duration: $hours h $minutes m. Total Points: $_points',
+        ),
       ),
     );
   }
 
+  AttendanceStatus? _getStatusForDay(DateTime day) {
+    if (_holidays.any((h) => isSameDay(h, day))) {
+      return AttendanceStatus.holiday;
+    }
+    if (day.weekday == DateTime.saturday || day.weekday == DateTime.sunday) {
+      return AttendanceStatus.weekend;
+    }
+
+    final record = _attendanceData[DateTime.utc(day.year, day.month, day.day)];
+    if (record != null) {
+      final now = DateTime.now();
+      final dayEnd = DateTime.utc(day.year, day.month, day.day, 23, 59, 59);
+      if (record.punchIn == null && dayEnd.isBefore(now)) {
+        return AttendanceStatus.absent;
+      }
+      return record.status;
+    }
+
+    return null;
+  }
+
+  Color _getStatusColor(AttendanceStatus? status) {
+    switch (status) {
+      case AttendanceStatus.present:
+        return Colors.green;
+      case AttendanceStatus.halfDay:
+        return Colors.orange;
+      case AttendanceStatus.absent:
+        return Colors.red;
+      case AttendanceStatus.leave:
+        return Colors.blue;
+      case AttendanceStatus.holiday:
+        return Colors.purple;
+      case AttendanceStatus.weekend:
+        return Colors.grey;
+      default:
+        return Colors.transparent;
+    }
+  }
+
+  String _formatTime(DateTime time) {
+    return "${time.hour.toString().padLeft(2, '0')}:"
+        "${time.minute.toString().padLeft(2, '0')}:"
+        "${time.second.toString().padLeft(2, '0')}";
+  }
+
+  String _formatDate(DateTime time) {
+    return "${time.day.toString().padLeft(2, '0')}-"
+        "${time.month.toString().padLeft(2, '0')}-"
+        "${time.year}";
+  }
+
   @override
   Widget build(BuildContext context) {
+    final record = _getOrCreateTodayRecord();
+
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            pinned: true,
-            backgroundColor: AppColors.primary,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                  color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
-            title: Text('Attendance',
-                style: GoogleFonts.poppins(
-                    color: Colors.white, fontWeight: FontWeight.w600)),
-            flexibleSpace: Container(
-                decoration:
-                    const BoxDecoration(gradient: AppColors.primaryGradient)),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: (MediaQuery.of(context).size.width * 0.042).clamp(12.0, 24.0),
-                vertical: 16,
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        title: const Text("Attendance Mark"),
+        centerTitle: true,
+        backgroundColor: ColorConstants.white,
+        surfaceTintColor: ColorConstants.white,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: Colors.grey.shade300, height: 1),
+        ),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            const SizedBox(height: 30),
+            Card(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Date/time card
-                  AppCard(
-                    child: Column(
-                      children: [
-                        Text(
-                          'Thursday, March 27, 2026',
-                          style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
-                              color: AppColors.textPrimary),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          _checkedIn
-                              ? 'Checked in at $_checkInTime'
-                              : 'Not checked in yet',
-                          style: GoogleFonts.poppins(
-                              fontSize: 13, color: AppColors.textSecondary),
-                        ),
-                        const SizedBox(height: 20),
-
-                        // Check-in button
-                        GestureDetector(
-                          onTap: _checkedIn ? null : _handleCheckIn,
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            width: (MediaQuery.of(context).size.width * 0.42).clamp(130.0, 180.0),
-                            height: (MediaQuery.of(context).size.width * 0.42).clamp(130.0, 180.0),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: _checkedIn
-                                  ? const LinearGradient(
-                                      colors: [
-                                        AppColors.success,
-                                        Color(0xFF059669)
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    )
-                                  : AppColors.primaryGradient,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: (_checkedIn
-                                          ? AppColors.success
-                                          : AppColors.primary)
-                                      .withValues(alpha: 0.4),
-                                  blurRadius: 24,
-                                  offset: const Offset(0, 8),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  _checkedIn
-                                      ? Icons.check_circle_rounded
-                                      : Icons.touch_app_rounded,
-                                  color: Colors.white,
-                                  size: 48,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  _checkedIn ? 'CHECKED IN' : 'CHECK IN',
-                                  style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 16,
-                                      letterSpacing: 1),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ).animate().scale(
-                            duration: 400.ms, curve: Curves.elasticOut),
-                        const SizedBox(height: 16),
-
-                        // Streak row
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: AppColors.secondary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text('🔥',
-                                  style: TextStyle(fontSize: 20)),
-                              const SizedBox(width: 8),
-                              Text('7 Day Streak!',
-                                  style: GoogleFonts.poppins(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 16,
-                                      color: AppColors.secondary)),
-                              const SizedBox(width: 8),
-                              Text('Keep it going!',
-                                  style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      color: AppColors.textSecondary)),
-                            ],
-                          ),
-                        ),
-                      ],
+              elevation: 4,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    Text(
+                      "Today: ${_formatDate(_currentTime)}",
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ).animate().fadeIn(delay: 100.ms),
-                  const SizedBox(height: 20),
-
-                  // Weekly view
-                  SectionHeader(title: 'This Week')
-                      .animate()
-                      .fadeIn(delay: 200.ms),
-                  const SizedBox(height: 12),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final dayCircle = (constraints.maxWidth / 9).clamp(32.0, 44.0);
-                      return AppCard(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: _weekDays.map((day) {
-                            return Column(
-                              children: [
-                                Text(day['day'] as String,
-                                    style: GoogleFonts.poppins(
-                                        fontSize: (constraints.maxWidth * 0.031).clamp(10.0, 14.0),
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.textSecondary)),
-                                const SizedBox(height: 6),
-                                Container(
-                                  width: dayCircle,
-                                  height: dayCircle,
-                                  decoration: BoxDecoration(
-                                    color: day['checked'] as bool
-                                        ? AppColors.success
-                                        : Colors.grey.shade200,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    day['checked'] as bool
-                                        ? Icons.check_rounded
-                                        : Icons.close_rounded,
-                                    color: day['checked'] as bool
-                                        ? Colors.white
-                                        : Colors.grey.shade400,
-                                    size: 18,
-                                  ),
-                                ),
-                              ],
-                            );
-                          }).toList(),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Current Time: ${_formatTime(_currentTime)}",
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 50),
+                        backgroundColor: record.punchIn == null
+                            ? Colors.green
+                            : (record.punchOut == null
+                            ? Colors.orange
+                            : Colors.grey),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      icon: Icon(
+                        record.punchIn == null
+                            ? Icons.login
+                            : (record.punchOut == null
+                            ? Icons.logout
+                            : Icons.check),
+                      ),
+                      label: Text(
+                        record.punchIn == null
+                            ? "Punch In"
+                            : (record.punchOut == null ? "Punch Out" : "Done"),
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                      onPressed: () {
+                        if (record.punchIn == null) {
+                          _punchIn();
+                        } else if (record.punchOut == null) {
+                          _punchOut();
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'You have already punched out today!',
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    if (record.punchIn != null)
+                      Text("Punch In: ${_formatTime(record.punchIn!)}"),
+                    if (record.punchOut != null)
+                      Text("Punch Out: ${_formatTime(record.punchOut!)}"),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Card(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 4,
+              child: TableCalendar(
+                focusedDay: _focusedDay,
+                firstDay: DateTime.utc(2020, 1, 1),
+                lastDay: DateTime.utc(2030, 12, 31),
+                selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                onDaySelected: (selectedDay, focusedDay) {
+                  setState(() {
+                    _selectedDay = selectedDay;
+                    _focusedDay = focusedDay;
+                  });
+                },
+                calendarBuilders: CalendarBuilders(
+                  markerBuilder: (context, day, events) {
+                    final status = _getStatusForDay(day);
+                    if (status != null) {
+                      return Positioned(
+                        bottom: 8,
+                        child: Container(
+                          width: 10,
+                          height: 10,
+                          decoration: BoxDecoration(
+                            color: _getStatusColor(status),
+                            shape: BoxShape.circle,
+                          ),
                         ),
                       );
-                    },
-                  ).animate().fadeIn(delay: 250.ms),
-                  const SizedBox(height: 20),
+                    }
+                    return null;
+                  },
+                  todayBuilder: (context, day, focusedDay) {
+                    final status = _getStatusForDay(day);
+                    final color = _getStatusColor(status);
 
-                  // Monthly summary
-                  SectionHeader(title: 'Monthly Summary')
-                      .animate()
-                      .fadeIn(delay: 300.ms),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                          child: StatCard(
-                              title: 'Present Days',
-                              value: '22',
-                              icon: Icons.calendar_today_rounded,
-                              color: AppColors.success)),
-                      const SizedBox(width: 10),
-                      Expanded(
-                          child: StatCard(
-                              title: 'Streak Record',
-                              value: '7',
-                              icon: Icons.local_fire_department_rounded,
-                              color: AppColors.secondary)),
-                      const SizedBox(width: 10),
-                      Expanded(
-                          child: StatCard(
-                              title: 'Pts Earned',
-                              value: '220',
-                              icon: Icons.stars_rounded,
-                              color: AppColors.primary)),
-                    ],
-                  ).animate().fadeIn(delay: 350.ms),
-                  const SizedBox(height: 20),
-
-                  // Check-in history
-                  SectionHeader(title: 'Check-in History')
-                      .animate()
-                      .fadeIn(delay: 400.ms),
-                  const SizedBox(height: 12),
-                  AppCard(
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
-                      children: _history.map((item) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 8),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: (item['status'] as bool
-                                          ? AppColors.success
-                                          : Colors.grey)
-                                      .withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Icon(
-                                  item['status'] as bool
-                                      ? Icons.check_circle_rounded
-                                      : Icons.cancel_rounded,
-                                  color: item['status'] as bool
-                                      ? AppColors.success
-                                      : Colors.grey,
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                  children: [
-                                    Text(item['date'] as String,
-                                        style: GoogleFonts.poppins(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 13,
-                                            color: AppColors.textPrimary)),
-                                    Text(
-                                        item['status'] as bool
-                                            ? 'Checked in at ${item['time']}'
-                                            : 'No check-in',
-                                        style: GoogleFonts.poppins(
-                                            fontSize: 11,
-                                            color: AppColors.textSecondary)),
-                                  ],
-                                ),
-                              ),
-                              if (item['pts'] as int > 0)
-                                PointsBadge(points: item['pts'] as int),
-                            ],
+                    return Container(
+                      margin: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: color, width: 2),
+                        color: color.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${day.day}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: color,
                           ),
-                        );
-                      }).toList(),
-                    ),
-                  ).animate().fadeIn(delay: 450.ms),
-                  const SizedBox(height: 40),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Wrap(
+                spacing: 12,
+                runSpacing: 6,
+                children: [
+                  _buildLegendDot(Colors.green, 'Present'),
+                  _buildLegendDot(Colors.red, 'Absent'),
+                  _buildLegendDot(Colors.orange, 'Half Day'),
+                  _buildLegendDot(Colors.blue, 'Leave'),
+                  _buildLegendDot(Colors.purple, 'Holiday'),
+                  _buildLegendDot(Colors.grey, 'Weekend'),
                 ],
               ),
             ),
-          ),
-          SliverSafeArea(
-            top: false,
-            sliver: const SliverToBoxAdapter(child: SizedBox.shrink()),
-          ),
-        ],
+            const SizedBox(height: 60),
+            Text("Total Points: $_points"),
+            Text("Current Streak: $_streak days"),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildLegendDot(Color color, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Text(label, style: const TextStyle(fontSize: 12)),
+      ],
     );
   }
 }

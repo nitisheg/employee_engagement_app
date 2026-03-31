@@ -6,6 +6,7 @@ import '../../core/widgets/common_widgets.dart';
 import 'quiz_screen.dart';
 import 'sudoku_screen.dart';
 import 'party_games/party_games_screen.dart';
+import '../quiz/quiz_list_screen.dart';
 
 class GamesHubScreen extends StatelessWidget {
   const GamesHubScreen({super.key});
@@ -97,7 +98,10 @@ class GamesHubScreen extends StatelessWidget {
           SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: (MediaQuery.of(context).size.width * 0.042).clamp(12.0, 24.0),
+                horizontal: (MediaQuery.of(context).size.width * 0.042).clamp(
+                  12.0,
+                  24.0,
+                ),
                 vertical: 16,
               ),
               child: Column(
@@ -327,7 +331,7 @@ class GamesHubScreen extends StatelessWidget {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) => const QuizScreen(),
+                                      builder: (_) => const QuizListScreen(),
                                     ),
                                   );
                                   break;
@@ -377,7 +381,9 @@ class GamesHubScreen extends StatelessWidget {
                                     width: 48,
                                     height: 48,
                                     decoration: BoxDecoration(
-                                      color: (g['color'] as Color).withValues(alpha: 0.12),
+                                      color: (g['color'] as Color).withValues(
+                                        alpha: 0.12,
+                                      ),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Icon(
@@ -409,7 +415,9 @@ class GamesHubScreen extends StatelessWidget {
                                       vertical: 3,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: (g['color'] as Color).withValues(alpha: 0.12),
+                                      color: (g['color'] as Color).withValues(
+                                        alpha: 0.12,
+                                      ),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(

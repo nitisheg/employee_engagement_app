@@ -74,7 +74,7 @@ class HomeScreen extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "Good Evening, ${user?.name.split(' ').first ?? 'Employee'}! 👋",
+                                      "Good Afternoon, ${user?.name.split(' ').first ?? 'Employee'}! 👋",
                                       style: GoogleFonts.poppins(
                                         color: Colors.white,
                                         fontSize: 16,
@@ -164,7 +164,7 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   SectionHeader(
                     title: 'Quick Actions',
-                    actionLabel: 'See All',
+                    // actionLabel: 'See All',
                     onAction: () {},
                   ).animate().fadeIn(delay: 100.ms),
                   const SizedBox(height: 12),

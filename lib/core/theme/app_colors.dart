@@ -12,6 +12,7 @@ class AppColors {
   static const Color textSecondary = Color(0xFF6B7280);
   static const Color success = Color(0xFF10B981);
   static const Color warning = Color(0xFFF59E0B);
+  static const Color error = Color(0xFFD32F2F);
   static const Color gold = Color(0xFFFFD700);
   static const Color surface = Color(0xFFFFEBEE);
 
