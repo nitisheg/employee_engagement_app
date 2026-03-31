@@ -12,6 +12,9 @@ class ActiveQuiz {
   final bool isLive;
   final bool submitted;
   final int totalQuestions;
+  final int totalPoints;
+  final int pointsEarned;
+  final String? submittedAt;
   final int pointsPerQuestion;
   final bool isAttempted;
 
@@ -24,6 +27,9 @@ class ActiveQuiz {
     this.isLive = false,
     this.submitted = false,
     required this.totalQuestions,
+    this.totalPoints = 0,
+    this.pointsEarned = 0,
+    this.submittedAt,
     required this.pointsPerQuestion,
     required this.isAttempted,
   });
@@ -37,7 +43,12 @@ class ActiveQuiz {
       endDateTime: json['end_datetime'] as String?,
       isLive: (json['is_live'] ?? false) as bool,
       submitted: (json['submitted'] ?? false) as bool,
-      totalQuestions: (json['totalQuestions'] ?? 0) as int,
+      totalQuestions:
+          (json['total_questions'] ?? json['totalQuestions'] ?? 0) as int,
+      totalPoints:
+          (json['total_points'] ?? json['pointsPerQuestion'] ?? 20) as int,
+      pointsEarned: (json['points_earned'] ?? 0) as int,
+      submittedAt: json['submitted_at'] as String?,
       pointsPerQuestion: (json['pointsPerQuestion'] ?? 20) as int,
       isAttempted: (json['isAttempted'] ?? false) as bool,
     );

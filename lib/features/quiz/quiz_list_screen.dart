@@ -185,106 +185,201 @@ class _QuizCard extends StatelessWidget {
 
   const _QuizCard({required this.quiz});
 
+  String _formatDate(String? dateString) {
+    if (dateString == null) return '';
+    try {
+      final date = DateTime.parse(dateString);
+      final now = DateTime.now();
+      final difference = now.difference(date);
+
+      if (difference.inMinutes < 1) {
+        return 'Just now';
+      } else if (difference.inHours < 1) {
+        return '${difference.inMinutes}m ago';
+      } else if (difference.inDays < 1) {
+        return '${difference.inHours}h ago';
+      } else if (difference.inDays < 7) {
+        return '${difference.inDays}d ago';
+      } else {
+        return '${date.day}/${date.month}/${date.year}';
+      }
+    } catch (e) {
+      return '';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isCompleted = quiz.submitted;
+    final canTake = !isCompleted;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: AppCard(
         child: InkWell(
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) =>
-                  QuizAttemptScreen(quizId: quiz.id, quizTitle: quiz.title),
-            ),
-          ),
+          onTap: canTake
+              ? () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => QuizAttemptScreen(
+                      quizId: quiz.id,
+                      quizTitle: quiz.title,
+                    ),
+                  ),
+                )
+              : null,
           borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.quiz_rounded,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          child: Opacity(
+            opacity: isCompleted ? 0.6 : 1.0,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Row(
                     children: [
-                      Text(
-                        quiz.title,
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          gradient: isCompleted
+                              ? LinearGradient(
+                                  colors: [
+                                    AppColors.success.withValues(alpha: 0.3),
+                                    AppColors.success.withValues(alpha: 0.2),
+                                  ],
+                                )
+                              : AppColors.primaryGradient,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          isCompleted
+                              ? Icons.check_rounded
+                              : Icons.quiz_rounded,
+                          color: isCompleted ? AppColors.success : Colors.white,
+                          size: 24,
                         ),
                       ),
-                      if (quiz.description != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          quiz.description!,
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              quiz.title,
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            if (quiz.description != null) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                quiz.description!,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ],
                         ),
-                      ],
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          _InfoChip(
-                            icon: Icons.question_answer_rounded,
-                            text: '${quiz.totalQuestions} Qs',
-                          ),
-                          const SizedBox(width: 8),
-                          _InfoChip(
-                            icon: Icons.stars_rounded,
-                            text: '${quiz.pointsPerQuestion} pts/Q',
-                          ),
-                          if (quiz.isAttempted) ...[
-                            const SizedBox(width: 8),
+                      ),
+                      if (isCompleted)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
+                                horizontal: 10,
+                                vertical: 6,
                               ),
                               decoration: BoxDecoration(
                                 color: AppColors.success.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                'Attempted',
+                                'Completed',
                                 style: GoogleFonts.poppins(
-                                  fontSize: 10,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.success,
                                 ),
                               ),
                             ),
                           ],
-                        ],
-                      ),
+                        )
+                      else
+                        const Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          color: AppColors.textSecondary,
+                          size: 16,
+                        ),
                     ],
                   ),
-                ),
-                const Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  color: AppColors.textSecondary,
-                  size: 16,
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      _InfoChip(
+                        icon: Icons.question_answer_rounded,
+                        text: '${quiz.totalQuestions} Qs',
+                      ),
+                      const SizedBox(width: 8),
+                      _InfoChip(
+                        icon: Icons.stars_rounded,
+                        text: '${quiz.pointsPerQuestion} pts/Q',
+                      ),
+                      if (isCompleted) ...[
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.emoji_events_rounded,
+                                size: 14,
+                                color: AppColors.primary,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${quiz.pointsEarned}/${quiz.totalPoints}',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  if (isCompleted && quiz.submittedAt != null) ...[
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Submitted ${_formatDate(quiz.submittedAt)}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
         ),
