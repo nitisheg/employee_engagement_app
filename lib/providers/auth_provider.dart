@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
+import '../models/dashboard_model.dart';
 import '../models/user_model.dart';
 import '../services/api_service.dart';
 
@@ -10,10 +11,12 @@ class AuthProvider extends ChangeNotifier {
 
   AuthStatus _status = AuthStatus.initial;
   UserModel? _user;
+  DashboardModel? _dashboard;
   String? _errorMessage;
 
   AuthStatus get status => _status;
   UserModel? get user => _user;
+  DashboardModel? get dashboard => _dashboard;
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _status == AuthStatus.authenticated;
   bool get isLoading => _status == AuthStatus.loading;
@@ -31,12 +34,34 @@ class AuthProvider extends ChangeNotifier {
       final data = await profileApi.getProfile();
       final userJson = data['user'] as Map<String, dynamic>? ?? data;
       _user = UserModel.fromJson(userJson);
+      await fetchDashboard();
       _status = AuthStatus.authenticated;
     } catch (_) {
       await ApiClient.instance.clearToken();
       _status = AuthStatus.unauthenticated;
     }
     notifyListeners();
+  }
+
+  Future<bool> fetchDashboard() async {
+    try {
+      final profileApi = ProfileApiService();
+      final data = await profileApi.getDashboard();
+      _dashboard = DashboardModel.fromJson(data);
+      if (_dashboard?.user.avatar != null && _dashboard!.user.avatar.isNotEmpty) {
+        _user = _user?.copyWith(avatar: _dashboard.user.avatar);
+      }
+      notifyListeners();
+      return true;
+    } on DioException catch (e) {
+      _errorMessage = ApiException.fromDioException(e);
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    }
   }
 
   Future<bool> login(String email, String password) async {
@@ -47,6 +72,7 @@ class AuthProvider extends ChangeNotifier {
       final data = await _authApi.login(email, password);
       final userJson = data['user'] as Map<String, dynamic>? ?? {};
       _user = UserModel.fromJson(userJson);
+      await fetchDashboard();
       _status = AuthStatus.authenticated;
       notifyListeners();
       return true;
@@ -75,7 +101,13 @@ class AuthProvider extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
     try {
-      await _authApi.register(name: name, email: email, password: password, employeeId: employeeId, department: department);
+      await _authApi.register(
+        name: name,
+        email: email,
+        password: password,
+        employeeId: employeeId,
+        department: department,
+      );
       _status = AuthStatus.unauthenticated;
       notifyListeners();
       return true;

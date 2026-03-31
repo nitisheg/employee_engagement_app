@@ -26,12 +26,12 @@ class ActiveQuiz {
     this.endDateTime,
     this.isLive = false,
     this.submitted = false,
-    required this.totalQuestions,
+    this.totalQuestions = 0,
     this.totalPoints = 0,
     this.pointsEarned = 0,
     this.submittedAt,
-    required this.pointsPerQuestion,
-    required this.isAttempted,
+    this.pointsPerQuestion = 0,
+    this.isAttempted = false,
   });
 
   factory ActiveQuiz.fromJson(Map<String, dynamic> json) {
@@ -45,11 +45,10 @@ class ActiveQuiz {
       submitted: (json['submitted'] ?? false) as bool,
       totalQuestions:
           (json['total_questions'] ?? json['totalQuestions'] ?? 0) as int,
-      totalPoints:
-          (json['total_points'] ?? json['pointsPerQuestion'] ?? 20) as int,
-      pointsEarned: (json['points_earned'] ?? 0) as int,
+      totalPoints: (json['total_points'] ?? json['totalPoints'] ?? 0) as int,
+      pointsEarned: (json['points_earned'] ?? json['score'] ?? 0) as int,
       submittedAt: json['submitted_at'] as String?,
-      pointsPerQuestion: (json['pointsPerQuestion'] ?? 20) as int,
+      pointsPerQuestion: (json['pointsPerQuestion'] ?? 0) as int,
       isAttempted: (json['isAttempted'] ?? false) as bool,
     );
   }

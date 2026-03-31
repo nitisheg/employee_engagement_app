@@ -35,6 +35,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
     final user = authProvider.user;
+    final dashboard = authProvider.dashboard;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -139,13 +140,15 @@ class HomeScreen extends StatelessWidget {
                           children: [
                             _MiniStatChip(
                               icon: Icons.stars_rounded,
-                              label: '${user?.totalPoints ?? 0} pts',
+                              label:
+                                  '${dashboard?.points.total ?? user?.totalPoints ?? 0} pts',
                               color: AppColors.gold,
                             ),
                             const SizedBox(width: 8),
                             _MiniStatChip(
                               icon: Icons.leaderboard_rounded,
-                              label: 'Rank #${user?.rank ?? 0}',
+                              label:
+                                  'Rank #${dashboard?.points.rank ?? user?.rank ?? 0}',
                               color: Colors.lightBlueAccent,
                             ),
                             const SizedBox(width: 8),
@@ -156,6 +159,31 @@ class HomeScreen extends StatelessWidget {
                             ),
                           ],
                         ),
+                        const SizedBox(height: 12),
+                        if (dashboard != null)
+                          Row(
+                            children: [
+                              _MiniStatChip(
+                                icon: Icons.check_circle_outline_rounded,
+                                label: '${dashboard.quizzes.taken} taken',
+                                color: AppColors.success,
+                              ),
+                              const SizedBox(width: 8),
+                              _MiniStatChip(
+                                icon: Icons.quiz_rounded,
+                                label:
+                                    '${dashboard.quizzes.totalActive} active',
+                                color: AppColors.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              _MiniStatChip(
+                                icon: Icons.show_chart_rounded,
+                                label:
+                                    '${dashboard.quizzes.percentage}% complete',
+                                color: AppColors.warning,
+                              ),
+                            ],
+                          ),
                       ],
                     ),
                   ),

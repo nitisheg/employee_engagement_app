@@ -166,6 +166,11 @@ class ProfileApiService {
     return resp.data!;
   }
 
+  Future<Map<String, dynamic>> getDashboard() async {
+    final resp = await _dio.get<Map<String, dynamic>>('/api/user/dashboard');
+    return resp.data!;
+  }
+
   Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> data) async {
     final resp = await _dio.put<Map<String, dynamic>>(
       '/api/user/me',
