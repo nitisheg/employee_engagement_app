@@ -1,30 +1,56 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:table_calendar/table_calendar.dart';
-import '../../core/constants/color_constants.dart';
-import '../../core/enums/attendance_module.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/widgets/common_widgets.dart';
+import 'attendance_history_screen.dart';
+import 'attendance_stats_screen.dart';
 
-class AttendanceView extends StatefulWidget {
-  const AttendanceView({super.key});
+// Local attendance record class
+class LocalAttendanceRecord {
+  final DateTime date;
+  DateTime? checkInTime;
+  DateTime? checkOutTime;
+  bool isPresent;
+  int pointsEarned;
 
-  @override
-  State<AttendanceView> createState() => _AttendanceViewState();
+  LocalAttendanceRecord({
+    required this.date,
+    this.checkInTime,
+    this.checkOutTime,
+    this.isPresent = false,
+    this.pointsEarned = 0,
+  });
+
+  Duration get workDuration {
+    if (checkInTime == null || checkOutTime == null) {
+      return Duration.zero;
+    }
+    return checkOutTime!.difference(checkInTime!);
+  }
+
+  String get status {
+    if (!isPresent) return 'Absent';
+    if (checkInTime != null && checkInTime!.hour >= 10) return 'Late';
+    return 'Present';
+  }
 }
 
-class _AttendanceViewState extends State<AttendanceView> {
-  DateTime _focusedDay = DateTime.now();
-  DateTime? _selectedDay;
-  DateTime _currentTime = DateTime.now();
+class AttendanceScreen extends StatefulWidget {
+  const AttendanceScreen({super.key});
+
+  @override
+  State<AttendanceScreen> createState() => _AttendanceScreenState();
+}
+
+class _AttendanceScreenState extends State<AttendanceScreen> {
   Timer? _timer;
+  DateTime _currentTime = DateTime.now();
 
-  final Map<DateTime, AttendanceRecord> _attendanceData = {};
-  final List<DateTime> _holidays = [
-    DateTime.utc(2025, 10, 2),
-    DateTime.utc(2025, 12, 25),
-  ];
-
-  int _points = 0;
-  int _streak = 0;
+  // Local data storage
+  static final Map<DateTime, LocalAttendanceRecord> _attendanceRecords = {};
+  static int _totalPoints = 0;
+  static int _currentStreak = 0;
+  static int _bestStreak = 0;
 
   @override
   void initState() {
@@ -34,79 +60,147 @@ class _AttendanceViewState extends State<AttendanceView> {
         _currentTime = DateTime.now();
       });
     });
+    _initializeSampleData();
   }
 
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
+  void _initializeSampleData() {
+    // Add some sample data for the past 30 days
+    final now = DateTime.now();
+    for (int i = 0; i < 30; i++) {
+      final date = now.subtract(Duration(days: i));
+      // Skip weekends
+      if (date.weekday != DateTime.saturday &&
+          date.weekday != DateTime.sunday) {
+        _attendanceRecords.putIfAbsent(
+          DateTime(date.year, date.month, date.day),
+          () {
+            final isPresent = i % 3 != 0; // Mark some days as absent
+            final record = LocalAttendanceRecord(
+              date: DateTime(date.year, date.month, date.day),
+              isPresent: isPresent,
+              pointsEarned: isPresent ? 10 : 0,
+            );
+            if (isPresent) {
+              record.checkInTime = DateTime(
+                date.year,
+                date.month,
+                date.day,
+                9 + (i % 2), // 9 or 10 AM
+                30,
+              );
+              record.checkOutTime = DateTime(
+                date.year,
+                date.month,
+                date.day,
+                17 + (i % 2), // 5 or 6 PM
+                0,
+              );
+            }
+            return record;
+          },
+        );
+      }
+    }
+    _calculateStats();
   }
 
-  AttendanceRecord _getOrCreateTodayRecord() {
-    final today = DateTime.utc(
-      DateTime.now().year,
-      DateTime.now().month,
-      DateTime.now().day,
+  void _calculateStats() {
+    _totalPoints = 0;
+    _currentStreak = 0;
+    int tempStreak = 0;
+
+    final sortedDates = _attendanceRecords.keys.toList()
+      ..sort((a, b) => b.compareTo(a));
+
+    for (final date in sortedDates) {
+      final record = _attendanceRecords[date]!;
+      _totalPoints += record.pointsEarned;
+
+      if (record.isPresent) {
+        tempStreak++;
+        if (tempStreak > _bestStreak) {
+          _bestStreak = tempStreak;
+        }
+      } else {
+        _currentStreak = tempStreak;
+        tempStreak = 0;
+      }
+    }
+  }
+
+  void _checkIn() {
+    final today = DateTime(
+      _currentTime.year,
+      _currentTime.month,
+      _currentTime.day,
     );
 
-    if (!_attendanceData.containsKey(today)) {
-      _attendanceData[today] = AttendanceRecord(
-        date: today,
-        status: AttendanceStatus.absent,
-      );
-    }
-    return _attendanceData[today]!;
-  }
-
-  void _punchIn() {
-    final record = _getOrCreateTodayRecord();
-    if (record.punchIn != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Already punched in today!')),
-      );
-      return;
+    if (_attendanceRecords.containsKey(today)) {
+      final record = _attendanceRecords[today]!;
+      if (record.checkInTime != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Already checked in today!')),
+        );
+        return;
+      }
     }
 
     setState(() {
-      record.punchIn = DateTime.now();
-      record.status = AttendanceStatus.present;
-      _points += 10;
-      _streak += 1;
+      final record = _attendanceRecords.putIfAbsent(
+        today,
+        () => LocalAttendanceRecord(date: today),
+      );
+      record.checkInTime = _currentTime;
+      record.isPresent = true;
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Punch In Success! +10 points. Streak: $_streak')),
+      SnackBar(
+        content: Text('Checked in at ${_formatTime(_currentTime)} ✓'),
+        backgroundColor: AppColors.success,
+      ),
     );
   }
 
-  void _punchOut() {
-    final record = _getOrCreateTodayRecord();
-    if (record.punchIn == null) {
+  void _checkOut() {
+    final today = DateTime(
+      _currentTime.year,
+      _currentTime.month,
+      _currentTime.day,
+    );
+
+    if (!_attendanceRecords.containsKey(today)) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('You must punch in first!')));
+      ).showSnackBar(const SnackBar(content: Text('Please check in first!')));
       return;
     }
-    if (record.punchOut != null) {
+
+    final record = _attendanceRecords[today]!;
+    if (record.checkInTime == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please check in first!')));
+      return;
+    }
+
+    if (record.checkOutTime != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Already punched out today!')),
+        const SnackBar(content: Text('Already checked out today!')),
       );
       return;
     }
 
     setState(() {
-      record.punchOut = DateTime.now();
-      final workedHours = record.workDuration.inMinutes / 60.0;
-
-      if (workedHours >= 9) {
-        record.status = AttendanceStatus.present;
-        _points += 20;
-      } else if (workedHours > 0) {
-        record.status = AttendanceStatus.halfDay;
-        _points += 10;
-      } else {
-        record.status = AttendanceStatus.absent;
-        _streak = 0;
+      record.checkOutTime = _currentTime;
+      final duration = record.workDuration;
+      if (duration.inHours >= 8) {
+        record.pointsEarned = 20;
+        _totalPoints += 20;
+        _currentStreak++;
+      } else if (duration.inMinutes > 0) {
+        record.pointsEarned = 10;
+        _totalPoints += 10;
       }
     });
 
@@ -117,256 +211,474 @@ class _AttendanceViewState extends State<AttendanceView> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Work Duration: $hours h $minutes m. Total Points: $_points',
+          'Checked out at ${_formatTime(_currentTime)} | Duration: ${hours}h ${minutes}m | +${record.pointsEarned} points',
         ),
+        backgroundColor: AppColors.success,
       ),
     );
   }
 
-  AttendanceStatus? _getStatusForDay(DateTime day) {
-    if (_holidays.any((h) => isSameDay(h, day))) {
-      return AttendanceStatus.holiday;
-    }
-    if (day.weekday == DateTime.saturday || day.weekday == DateTime.sunday) {
-      return AttendanceStatus.weekend;
-    }
-
-    final record = _attendanceData[DateTime.utc(day.year, day.month, day.day)];
-    if (record != null) {
-      final now = DateTime.now();
-      final dayEnd = DateTime.utc(day.year, day.month, day.day, 23, 59, 59);
-      if (record.punchIn == null && dayEnd.isBefore(now)) {
-        return AttendanceStatus.absent;
-      }
-      return record.status;
-    }
-
-    return null;
-  }
-
-  Color _getStatusColor(AttendanceStatus? status) {
-    switch (status) {
-      case AttendanceStatus.present:
-        return Colors.green;
-      case AttendanceStatus.halfDay:
-        return Colors.orange;
-      case AttendanceStatus.absent:
-        return Colors.red;
-      case AttendanceStatus.leave:
-        return Colors.blue;
-      case AttendanceStatus.holiday:
-        return Colors.purple;
-      case AttendanceStatus.weekend:
-        return Colors.grey;
-      default:
-        return Colors.transparent;
-    }
-  }
-
   String _formatTime(DateTime time) {
-    return "${time.hour.toString().padLeft(2, '0')}:"
+    final hour = time.hour % 12 == 0 ? 12 : time.hour % 12;
+    final amPm = time.hour >= 12 ? 'PM' : 'AM';
+
+    return "${hour.toString().padLeft(2, '0')}:"
         "${time.minute.toString().padLeft(2, '0')}:"
-        "${time.second.toString().padLeft(2, '0')}";
+        "${time.second.toString().padLeft(2, '0')} $amPm";
   }
 
   String _formatDate(DateTime time) {
-    return "${time.day.toString().padLeft(2, '0')}-"
-        "${time.month.toString().padLeft(2, '0')}-"
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    return "${time.day.toString().padLeft(2, '0')} "
+        "${months[time.month - 1]} "
         "${time.year}";
+  }
+
+  LocalAttendanceRecord? getTodayRecord() {
+    final today = DateTime(
+      _currentTime.year,
+      _currentTime.month,
+      _currentTime.day,
+    );
+    return _attendanceRecords[today];
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final record = _getOrCreateTodayRecord();
+    final todayRecord = getTodayRecord();
+    final presentDays = _attendanceRecords.values
+        .where((r) => r.isPresent)
+        .length;
+    final absentDays = _attendanceRecords.values
+        .where((r) => !r.isPresent)
+        .length;
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text("Attendance Mark"),
+        title: const Text('Attendance'),
         centerTitle: true,
-        backgroundColor: ColorConstants.white,
-        surfaceTintColor: ColorConstants.white,
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        elevation: 0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(color: Colors.grey.shade300, height: 1),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    AttendanceHistoryScreen(records: _attendanceRecords),
+              ),
+            ),
+            child: const Text('History'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AttendanceStatsScreen(
+                  records: _attendanceRecords,
+                  totalPoints: _totalPoints,
+                  currentStreak: _currentStreak,
+                  bestStreak: _bestStreak,
+                ),
+              ),
+            ),
+            child: const Text('Stats'),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const SizedBox(height: 30),
-            Card(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 4,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    Text(
-                      "Today: ${_formatDate(_currentTime)}",
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      "Current Time: ${_formatTime(_currentTime)}",
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 50),
-                        backgroundColor: record.punchIn == null
-                            ? Colors.green
-                            : (record.punchOut == null
-                            ? Colors.orange
-                            : Colors.grey),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  // Current Time Card
+                  AppCard(
+                    child: Column(
+                      children: [
+                        Text(
+                          _formatDate(_currentTime),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
+                        const SizedBox(height: 12),
+                        Text(
+                          _formatTime(_currentTime),
+                          style: const TextStyle(
+                            fontSize: 36,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFE53935),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Check-In/Out Buttons
+                  if (todayRecord?.checkInTime == null)
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          backgroundColor: AppColors.success,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: const Icon(Icons.login),
+                        label: const Text(
+                          'Check In',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        onPressed: _checkIn,
                       ),
-                      icon: Icon(
-                        record.punchIn == null
-                            ? Icons.login
-                            : (record.punchOut == null
-                            ? Icons.logout
-                            : Icons.check),
-                      ),
-                      label: Text(
-                        record.punchIn == null
-                            ? "Punch In"
-                            : (record.punchOut == null ? "Punch Out" : "Done"),
-                        style: const TextStyle(fontSize: 18),
-                      ),
-                      onPressed: () {
-                        if (record.punchIn == null) {
-                          _punchIn();
-                        } else if (record.punchOut == null) {
-                          _punchOut();
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'You have already punched out today!',
+                    )
+                  else if (todayRecord?.checkOutTime == null)
+                    Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.success.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('Checked In At'),
+                                  Text(
+                                    _formatTime(todayRecord!.checkInTime!),
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF10B981),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Icon(
+                                Icons.check_circle,
+                                color: AppColors.success,
+                                size: 32,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              backgroundColor: AppColors.warning,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                          );
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 8),
-                    if (record.punchIn != null)
-                      Text("Punch In: ${_formatTime(record.punchIn!)}"),
-                    if (record.punchOut != null)
-                      Text("Punch Out: ${_formatTime(record.punchOut!)}"),
-                    const SizedBox(height: 8),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Card(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 4,
-              child: TableCalendar(
-                focusedDay: _focusedDay,
-                firstDay: DateTime.utc(2020, 1, 1),
-                lastDay: DateTime.utc(2030, 12, 31),
-                selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                onDaySelected: (selectedDay, focusedDay) {
-                  setState(() {
-                    _selectedDay = selectedDay;
-                    _focusedDay = focusedDay;
-                  });
-                },
-                calendarBuilders: CalendarBuilders(
-                  markerBuilder: (context, day, events) {
-                    final status = _getStatusForDay(day);
-                    if (status != null) {
-                      return Positioned(
-                        bottom: 8,
-                        child: Container(
-                          width: 10,
-                          height: 10,
-                          decoration: BoxDecoration(
-                            color: _getStatusColor(status),
-                            shape: BoxShape.circle,
+                            icon: const Icon(Icons.logout),
+                            label: const Text(
+                              'Check Out',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                            onPressed: _checkOut,
                           ),
                         ),
-                      );
-                    }
-                    return null;
-                  },
-                  todayBuilder: (context, day, focusedDay) {
-                    final status = _getStatusForDay(day);
-                    final color = _getStatusColor(status);
-
-                    return Container(
-                      margin: const EdgeInsets.all(4),
+                      ],
+                    )
+                  else
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        border: Border.all(color: color, width: 2),
-                        color: color.withOpacity(0.2),
-                        shape: BoxShape.circle,
+                        color: AppColors.success.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Center(
-                        child: Text(
-                          '${day.day}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: color,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Checked Out',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Icon(
+                                Icons.done_all,
+                                color: AppColors.success,
+                                size: 32,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('Check In Time'),
+                                  Text(
+                                    _formatTime(todayRecord!.checkInTime!),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  const Text('Check Out Time'),
+                                  Text(
+                                    _formatTime(todayRecord!.checkOutTime!),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Divider(color: Colors.grey.shade300),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Total Duration',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                '${todayRecord!.workDuration.inHours}h ${todayRecord!.workDuration.inMinutes.remainder(60)}m',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF10B981),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Points Earned',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                '+${todayRecord!.pointsEarned}',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFE53935),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 20),
+
+                  // Stats Summary
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AppCard(
+                          child: Column(
+                            children: [
+                              const Icon(
+                                Icons.done,
+                                color: Color(0xFF10B981),
+                                size: 28,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                '$presentDays',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const Text(
+                                'Present',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                    );
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Wrap(
-                spacing: 12,
-                runSpacing: 6,
-                children: [
-                  _buildLegendDot(Colors.green, 'Present'),
-                  _buildLegendDot(Colors.red, 'Absent'),
-                  _buildLegendDot(Colors.orange, 'Half Day'),
-                  _buildLegendDot(Colors.blue, 'Leave'),
-                  _buildLegendDot(Colors.purple, 'Holiday'),
-                  _buildLegendDot(Colors.grey, 'Weekend'),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: AppCard(
+                          child: Column(
+                            children: [
+                              const Icon(
+                                Icons.close,
+                                color: Color(0xFFD32F2F),
+                                size: 28,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                '$absentDays',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const Text(
+                                'Absent',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Streak & Points
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AppCard(
+                          child: Column(
+                            children: [
+                              const Icon(
+                                Icons.local_fire_department,
+                                color: Color(0xFFFF7043),
+                                size: 28,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                '$_currentStreak',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const Text(
+                                'Current Streak',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: AppCard(
+                          child: Column(
+                            children: [
+                              const Icon(
+                                Icons.star,
+                                color: Color(0xFFFFD700),
+                                size: 28,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                '$_totalPoints',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFE53935),
+                                ),
+                              ),
+                              const Text(
+                                'Total Points',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Info Card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info, color: Colors.blue.shade700),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Work 8+ hours',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue.shade700,
+                                ),
+                              ),
+                              Text(
+                                'Earn 20 points, else 10 points',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.blue.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 60),
-            Text("Total Points: $_points"),
-            Text("Current Streak: $_streak days"),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildLegendDot(Color color, String label) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 6),
-        Text(label, style: const TextStyle(fontSize: 12)),
-      ],
     );
   }
 }
