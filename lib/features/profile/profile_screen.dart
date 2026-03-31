@@ -9,6 +9,8 @@ import '../../core/widgets/common_widgets.dart';
 import '../../providers/auth_provider.dart';
 import '../certifications/certifications_screen.dart';
 import '../auth/login_screen.dart';
+import '../notifications/notifications_screen.dart';
+import '../privacy/privacy_settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -150,7 +152,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Stats row
                   Row(
                     children: [
                       Expanded(
@@ -467,13 +468,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           icon: Icons.notifications_outlined,
                           label: 'Notifications',
                           color: AppColors.warning,
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const NotificationsScreen(),
+                              ),
+                            );
+                          },
                         ),
                         _SettingsTile(
                           icon: Icons.lock_outline_rounded,
                           label: 'Privacy',
                           color: AppColors.success,
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const PrivacySettingsScreen(),
+                              ),
+                            );
+                          },
                         ),
                         _SettingsTile(
                           icon: Icons.logout_rounded,
