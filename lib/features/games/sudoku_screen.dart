@@ -1,7 +1,8 @@
 import 'dart:async';
+import 'dart:math';
+import 'package:employee_engagement_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../../core/theme/app_colors.dart';
+import 'package:flutter/services.dart';
 
 class SudokuScreen extends StatefulWidget {
   const SudokuScreen({super.key});
@@ -11,397 +12,429 @@ class SudokuScreen extends StatefulWidget {
 }
 
 class _SudokuScreenState extends State<SudokuScreen> {
-  String _difficulty = 'Easy';
-  int? _selectedRow;
-  int? _selectedCol;
-  bool _isPaused = false;
-  int _elapsedSeconds = 0;
-  Timer? _timer;
-  int _score = 0;
+  String selectedDifficulty = "Easy";
+  late DateTime startTime;
+  int score = 0;
+  bool gameStarted = false;
 
-  // 0 = empty, non-zero = given clue (locked)
-  // grid[row][col]
-  late List<List<int>> _userGrid;
-  late List<List<bool>> _locked;
+  List<List<int>> puzzle = List.generate(9, (_) => List.filled(9, 0));
+  List<List<int>> solution = List.generate(9, (_) => List.filled(9, 0));
+  List<List<int>> userGrid = List.generate(9, (_) => List.filled(9, 0));
 
-  static const List<List<int>> _easyPuzzle = [
-    [5, 3, 0, 0, 7, 0, 0, 0, 0],
-    [6, 0, 0, 1, 9, 5, 0, 0, 0],
-    [0, 9, 8, 0, 0, 0, 0, 6, 0],
-    [8, 0, 0, 0, 6, 0, 0, 0, 3],
-    [4, 0, 0, 8, 0, 3, 0, 0, 1],
-    [7, 0, 0, 0, 2, 0, 0, 0, 6],
-    [0, 6, 0, 0, 0, 0, 2, 8, 0],
-    [0, 0, 0, 4, 1, 9, 0, 0, 5],
-    [0, 0, 0, 0, 8, 0, 0, 7, 9],
-  ];
+  Timer? countdownTimer;
+  int remainingTime = 0;
+  int hintsUsed = 0;
+  int mistakesMade = 0;
+  final int maxHints = 3;
+  final int hintPenalty = 10;
+  final int maxMistakes = 3;
 
-  static const List<List<int>> _mediumPuzzle = [
-    [0, 0, 0, 2, 6, 0, 7, 0, 1],
-    [6, 8, 0, 0, 7, 0, 0, 9, 0],
-    [1, 9, 0, 0, 0, 4, 5, 0, 0],
-    [8, 2, 0, 1, 0, 0, 0, 4, 0],
-    [0, 0, 4, 6, 0, 2, 9, 0, 0],
-    [0, 5, 0, 0, 0, 3, 0, 2, 8],
-    [0, 0, 9, 3, 0, 0, 0, 7, 4],
-    [0, 4, 0, 0, 5, 0, 0, 3, 6],
-    [7, 0, 3, 0, 1, 8, 0, 0, 0],
-  ];
+  final Random _rand = Random();
 
-  static const List<List<int>> _hardPuzzle = [
-    [0, 2, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 6, 0, 0, 0, 0, 3],
-    [0, 7, 4, 0, 8, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 3, 0, 0, 2],
-    [0, 8, 0, 0, 4, 0, 0, 1, 0],
-    [6, 0, 0, 5, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 1, 0, 7, 8, 0],
-    [5, 0, 0, 0, 0, 9, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 4, 0],
-  ];
+  late List<List<TextEditingController>> controllers;
+
+  /// New flags for mistake highlighting
+  bool showMistakes = false;
+  List<List<bool>> wrongCells = List.generate(9, (_) => List.filled(9, false));
 
   @override
   void initState() {
     super.initState();
-    _initPuzzle();
-    _startTimer();
+    controllers = List.generate(
+      9,
+      (_) => List.generate(9, (_) => TextEditingController()),
+    );
   }
 
-  void _initPuzzle() {
-    final source = _difficulty == 'Easy'
-        ? _easyPuzzle
-        : _difficulty == 'Medium'
-            ? _mediumPuzzle
-            : _hardPuzzle;
-    _userGrid = source.map((r) => List<int>.from(r)).toList();
-    _locked = source
-        .map((r) => r.map((v) => v != 0).toList())
-        .toList();
-    _selectedRow = null;
-    _selectedCol = null;
-    _elapsedSeconds = 0;
-    _score = 0;
-  }
-
-  void _startTimer() {
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!_isPaused) setState(() => _elapsedSeconds++);
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  String get _timeString {
-    final m = _elapsedSeconds ~/ 60;
-    final s = _elapsedSeconds % 60;
-    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
-  }
-
-  void _selectCell(int row, int col) {
-    if (_locked[row][col]) return;
-    setState(() {
-      _selectedRow = row;
-      _selectedCol = col;
-    });
-  }
-
-  void _inputNumber(int num) {
-    if (_selectedRow == null || _selectedCol == null) return;
-    if (_locked[_selectedRow!][_selectedCol!]) return;
-    setState(() {
-      _userGrid[_selectedRow!][_selectedCol!] = num;
-      if (num != 0) _score += 2;
-    });
-  }
-
-  bool _isInSameBox(int r, int c) {
-    if (_selectedRow == null || _selectedCol == null) return false;
-    return (r ~/ 3 == _selectedRow! ~/ 3) && (c ~/ 3 == _selectedCol! ~/ 3);
-  }
-
-  bool _isConflict(int row, int col) {
-    final val = _userGrid[row][col];
-    if (val == 0) return false;
-    // Check row
-    for (int c = 0; c < 9; c++) {
-      if (c != col && _userGrid[row][c] == val) return true;
+  bool _isSafe(List<List<int>> board, int row, int col, int num) {
+    for (int x = 0; x < 9; x++) {
+      if (board[row][x] == num) return false;
+      if (board[x][col] == num) return false;
     }
-    // Check col
-    for (int r = 0; r < 9; r++) {
-      if (r != row && _userGrid[r][col] == val) return true;
-    }
-    // Check 3x3
-    final br = (row ~/ 3) * 3;
-    final bc = (col ~/ 3) * 3;
-    for (int r = br; r < br + 3; r++) {
-      for (int c = bc; c < bc + 3; c++) {
-        if ((r != row || c != col) && _userGrid[r][c] == val) return true;
+    int startRow = row - row % 3, startCol = col - col % 3;
+    for (int r = 0; r < 3; r++) {
+      for (int c = 0; c < 3; c++) {
+        if (board[startRow + r][startCol + c] == num) return false;
       }
     }
-    return false;
+    return true;
   }
 
-  BorderSide _cellBorder(int row, int col, bool isRight, bool isBottom) {
-    if (isRight && (col + 1) % 3 == 0 && col < 8) {
-      return const BorderSide(color: AppColors.primary, width: 2);
+  bool _fillBoard(List<List<int>> board) {
+    for (int row = 0; row < 9; row++) {
+      for (int col = 0; col < 9; col++) {
+        if (board[row][col] == 0) {
+          List<int> nums = List<int>.generate(9, (i) => i + 1)..shuffle(_rand);
+          for (int num in nums) {
+            if (_isSafe(board, row, col, num)) {
+              board[row][col] = num;
+              if (_fillBoard(board)) return true;
+              board[row][col] = 0;
+            }
+          }
+          return false;
+        }
+      }
     }
-    if (isBottom && (row + 1) % 3 == 0 && row < 8) {
-      return const BorderSide(color: AppColors.primary, width: 2);
-    }
-    if (isRight) return BorderSide(color: Colors.grey.shade300);
-    if (isBottom) return BorderSide(color: Colors.grey.shade300);
-    return BorderSide.none;
+    return true;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+  List<List<int>> _generateFullSolution() {
+    List<List<int>> b = List.generate(9, (_) => List.filled(9, 0));
+    for (int k = 0; k < 9; k += 3) {
+      List<int> nums = List<int>.generate(9, (i) => i + 1)..shuffle(_rand);
+      int idx = 0;
+      for (int r = 0; r < 3; r++) {
+        for (int c = 0; c < 3; c++) {
+          b[k + r][k + c] = nums[idx++];
+        }
+      }
+    }
+    _fillBoard(b);
+    return b;
+  }
+
+  void _removeCells(List<List<int>> board, int emptyCount) {
+    List<int> positions = List<int>.generate(81, (i) => i)..shuffle(_rand);
+    int removed = 0;
+    for (int pos in positions) {
+      if (removed >= emptyCount) break;
+      int r = pos ~/ 9;
+      int c = pos % 9;
+      if (board[r][c] != 0) {
+        board[r][c] = 0;
+        removed++;
+      }
+    }
+  }
+
+  List<List<int>> _deepCopy(List<List<int>> src) =>
+      src.map((row) => row.toList()).toList();
+
+  void startGame(String difficulty) {
+    setState(() {
+      selectedDifficulty = difficulty;
+      startTime = DateTime.now();
+      score = 0;
+      gameStarted = true;
+      hintsUsed = 0;
+      mistakesMade = 0;
+      showMistakes = false;
+      wrongCells = List.generate(9, (_) => List.filled(9, false));
+
+      int emptyCells = selectedDifficulty == "Easy"
+          ? 20
+          : selectedDifficulty == "Medium"
+          ? 40
+          : 55;
+
+      remainingTime = selectedDifficulty == "Easy"
+          ? 300
+          : selectedDifficulty == "Medium"
+          ? 600
+          : 900;
+
+      solution = _generateFullSolution();
+      puzzle = _deepCopy(solution);
+      _removeCells(puzzle, emptyCells);
+      userGrid = _deepCopy(puzzle);
+
+      for (int r = 0; r < 9; r++) {
+        for (int c = 0; c < 9; c++) {
+          controllers[r][c].text = userGrid[r][c] == 0
+              ? ''
+              : userGrid[r][c].toString();
+        }
+      }
+
+      countdownTimer?.cancel();
+      countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+        if (remainingTime > 0) {
+          setState(() => remainingTime--);
+        } else {
+          t.cancel();
+          _timeUp();
+        }
+      });
+    });
+  }
+
+  void _timeUp() {
+    setState(() {
+      gameStarted = false;
+      score = 0;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("⏰ Time's up! You scored 0 points.")),
+    );
+  }
+
+  void completeGame() {
+    setState(() {
+      showMistakes = true;
+      wrongCells = List.generate(9, (_) => List.filled(9, false));
+    });
+
+    bool correct = true;
+    for (int i = 0; i < 9; i++) {
+      for (int j = 0; j < 9; j++) {
+        if (userGrid[i][j] != solution[i][j]) {
+          wrongCells[i][j] = true;
+          correct = false;
+        }
+      }
+    }
+
+    if (!correct) {
+      mistakesMade++;
+      if (mistakesMade >= maxMistakes) {
+        countdownTimer?.cancel();
+        setState(() {
+          gameStarted = false;
+          score = 0;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("❌ 3 Mistakes! Game Over. Score: 0")),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("❌ Wrong! Mistakes: $mistakesMade/$maxMistakes"),
+          ),
+        );
+      }
+      return;
+    }
+
+    countdownTimer?.cancel();
+    final endTime = DateTime.now();
+    final timeTaken = endTime.difference(startTime).inSeconds;
+
+    int basePoints = selectedDifficulty == "Easy"
+        ? 50
+        : selectedDifficulty == "Medium"
+        ? 100
+        : 200;
+
+    int multiplier = selectedDifficulty == "Easy"
+        ? 1
+        : selectedDifficulty == "Medium"
+        ? 2
+        : 3;
+
+    int penalty = (timeTaken ~/ 5) + (hintsUsed * hintPenalty);
+    int finalScore = (basePoints * multiplier) - penalty;
+
+    setState(() {
+      score = finalScore > 0 ? finalScore : 0;
+      gameStarted = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("✅ Correct! You scored $score points.")),
+    );
+  }
+
+  void useHint() {
+    if (!gameStarted) return;
+
+    if (hintsUsed >= maxHints) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("⚠️ No more hints available!")),
+      );
+      return;
+    }
+
+    List<List<int>> emptyCells = [];
+    for (int r = 0; r < 9; r++) {
+      for (int c = 0; c < 9; c++) {
+        if (userGrid[r][c] == 0) emptyCells.add([r, c]);
+      }
+    }
+
+    if (emptyCells.isEmpty) return;
+
+    final hintCell = emptyCells[_rand.nextInt(emptyCells.length)];
+    int r = hintCell[0];
+    int c = hintCell[1];
+
+    setState(() {
+      userGrid[r][c] = solution[r][c];
+      controllers[r][c].text = solution[r][c].toString();
+      hintsUsed++;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("💡 Hint used! ($hintsUsed/$maxHints)")),
+    );
+  }
+
+  // UI Section
+
+  Widget buildSudokuGrid() {
+    return AspectRatio(
+      aspectRatio: 1,
+      child: GridView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: 81,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 9,
         ),
-        title: Text('Sudoku',
-            style: GoogleFonts.poppins(
-                color: Colors.white, fontWeight: FontWeight.w600)),
-        flexibleSpace: Container(
-            decoration:
-                const BoxDecoration(gradient: AppColors.primaryGradient)),
-        actions: [
-          Center(
-            child: Text(_timeString,
-                style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16)),
-          ),
-          const SizedBox(width: 8),
-          IconButton(
-            icon: Icon(_isPaused ? Icons.play_arrow_rounded : Icons.pause_rounded,
-                color: Colors.white),
-            onPressed: () => setState(() => _isPaused = !_isPaused),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        top: false,
-        child: Column(
-        children: [
-          // Difficulty selector
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Row(
-              children: ['Easy', 'Medium', 'Hard'].map((d) {
-                final selected = _difficulty == d;
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _difficulty = d;
-                        _initPuzzle();
-                      });
-                      _startTimer();
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        gradient: selected ? AppColors.primaryGradient : null,
-                        color: selected ? null : Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                            color: selected
-                                ? Colors.transparent
-                                : Colors.grey.shade200),
-                        boxShadow: selected
-                            ? [
-                                BoxShadow(
-                                    color: AppColors.primary
-                                        .withValues(alpha: 0.3),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 3))
-                              ]
-                            : [],
-                      ),
-                      child: Center(
-                        child: Text(d,
-                            style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 13,
-                                color: selected
-                                    ? Colors.white
-                                    : AppColors.textSecondary)),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
+        itemBuilder: (context, index) {
+          int row = index ~/ 9;
+          int col = index % 9;
+          bool isFixed = puzzle[row][col] != 0;
 
-          // Score display
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Score: $_score pts',
-                    style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
-                        fontSize: 14)),
-                Text('Tap a cell, then pick a number',
-                    style: GoogleFonts.poppins(
-                        fontSize: 11, color: AppColors.textSecondary)),
-              ],
-            ),
-          ),
+          BorderSide thick = const BorderSide(width: 2);
+          BorderSide thin = const BorderSide(width: 0.5);
+          Border border = Border(
+            top: row % 3 == 0 ? thick : thin,
+            left: col % 3 == 0 ? thick : thin,
+            right: col == 8 ? thick : thin,
+            bottom: row == 8 ? thick : thin,
+          );
 
-          // Sudoku grid
-          Expanded(
+          return Container(
+            decoration: BoxDecoration(
+              color: isFixed
+                  ? Colors.grey.shade200
+                  : (showMistakes && wrongCells[row][col])
+                  ? Colors.red.shade200
+                  : Colors.white,
+              border: border,
+            ),
             child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                          color: AppColors.primaryDark, width: 2.5),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: GridView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 9),
-                      itemCount: 81,
-                      itemBuilder: (context, index) {
-                        final row = index ~/ 9;
-                        final col = index % 9;
-                        final val = _userGrid[row][col];
-                        final isLocked = _locked[row][col];
-                        final isSelected =
-                            row == _selectedRow && col == _selectedCol;
-                        final isSameRow = row == _selectedRow;
-                        final isSameCol = col == _selectedCol;
-                        final isSameBox = _isInSameBox(row, col);
-                        final isConflict = _isConflict(row, col);
-
-                        Color bgColor;
-                        if (isSelected) {
-                          bgColor = AppColors.primary.withValues(alpha: 0.3);
-                        } else if (isSameRow || isSameCol || isSameBox) {
-                          bgColor = AppColors.primary.withValues(alpha: 0.07);
-                        } else if (isLocked) {
-                          bgColor = Colors.grey.shade100;
-                        } else {
-                          bgColor = Colors.white;
-                        }
-
-                        return GestureDetector(
-                          onTap: () => _selectCell(row, col),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: bgColor,
-                              border: Border(
-                                right: _cellBorder(row, col, true, false),
-                                bottom: _cellBorder(row, col, false, true),
-                              ),
-                            ),
-                            child: Center(
-                              child: val == 0
-                                  ? const SizedBox.shrink()
-                                  : Text(
-                                      '$val',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 16,
-                                        fontWeight: isLocked
-                                            ? FontWeight.w800
-                                            : FontWeight.w500,
-                                        color: isConflict
-                                            ? Colors.redAccent
-                                            : isLocked
-                                                ? AppColors.textPrimary
-                                                : AppColors.primary,
-                                      ),
-                                    ),
-                            ),
-                          ),
-                        );
+              child: isFixed
+                  ? Text(
+                      puzzle[row][col].toString(),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  : TextField(
+                      controller: controllers[row][col],
+                      textAlign: TextAlign.center,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.allow(RegExp(r'[1-9]')),
+                        LengthLimitingTextInputFormatter(1),
+                      ],
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.blue, // Always blue, no live red
+                      ),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                        counterText: "",
+                      ),
+                      onChanged: (val) {
+                        setState(() {
+                          if (val.isEmpty) {
+                            userGrid[row][col] = 0;
+                          } else {
+                            final n = int.tryParse(val);
+                            userGrid[row][col] = (n != null && n >= 1 && n <= 9)
+                                ? n
+                                : 0;
+                          }
+                        });
                       },
                     ),
-                  ),
-                ),
-              ),
             ),
-          ),
-
-          // Number pad
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ...List.generate(9, (i) => i + 1).map((n) => _NumberPadBtn(
-                    number: n, onTap: () => _inputNumber(n))),
-                _NumberPadBtn(
-                  number: 0,
-                  isErase: true,
-                  onTap: () => _inputNumber(0),
-                ),
-              ],
-            ),
-          ),
-        ],
-        ),
+          );
+        },
       ),
     );
   }
-}
-
-class _NumberPadBtn extends StatelessWidget {
-  final int number;
-  final VoidCallback onTap;
-  final bool isErase;
-
-  const _NumberPadBtn(
-      {required this.number, required this.onTap, this.isErase = false});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 34,
-        height: 44,
-        decoration: BoxDecoration(
-          color: isErase
-              ? Colors.red.withValues(alpha: 0.1)
-              : AppColors.primary.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-              color: isErase
-                  ? Colors.red.withValues(alpha: 0.3)
-                  : AppColors.primary.withValues(alpha: 0.3)),
+    String minutes = (remainingTime ~/ 60).toString().padLeft(2, '0');
+    String seconds = (remainingTime % 60).toString().padLeft(2, '0');
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Sudoku'),
+        centerTitle: true,
+        backgroundColor: AppColors.primary,
+        surfaceTintColor: Colors.white,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: Colors.grey.shade300, height: 1),
         ),
-        child: Center(
-          child: isErase
-              ? const Icon(Icons.backspace_outlined,
-                  size: 16, color: Colors.redAccent)
-              : Text('$number',
-                  style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                      color: AppColors.primary)),
+      ),
+      body: SafeArea(
+        top: false,
+        bottom: true,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  const Text('Difficulty:'),
+                  Spacer(),
+                  DropdownButton<String>(
+                    value: selectedDifficulty,
+                    items: ['Easy', 'Medium', 'Hard']
+                        .map((d) => DropdownMenuItem(value: d, child: Text(d)))
+                        .toList(),
+                    onChanged: (d) {
+                      if (d != null) startGame(d);
+                    },
+                  ),
+                  const Spacer(),
+                  if (gameStarted)
+                    Text(
+                      '⏱ $minutes:$seconds',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red,
+                      ),
+                    ),
+                  const SizedBox(width: 8),
+                  Text('Score: $score', style: const TextStyle(fontSize: 16)),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (gameStarted)
+                Expanded(child: buildSudokuGrid())
+              else
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      'Press a difficulty to start a new puzzle',
+                      style: TextStyle(color: Colors.grey.shade700),
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 12),
+              if (gameStarted)
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: completeGame,
+                        child: const Text('Submit Solution'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: useHint,
+                        child: Text('Hint ($hintsUsed/$maxHints)'),
+                      ),
+                    ),
+                  ],
+                ),
+              const SizedBox(height: 8),
+            ],
+          ),
         ),
       ),
     );

@@ -68,19 +68,66 @@ class HomeScreen extends StatelessWidget {
                                 Container(
                                   width: 42,
                                   height: 42,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
+                                  decoration: const BoxDecoration(
                                     shape: BoxShape.circle,
                                   ),
-                                  child: Center(
-                                    child: Text(
-                                      user?.initials ?? '--',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 15,
-                                      ),
-                                    ),
+                                  child: ClipOval(
+                                    child:
+                                        (dashboard?.user.avatar != null &&
+                                            dashboard!.user.avatar.isNotEmpty)
+                                        ? Image.network(
+                                            dashboard.user.avatar,
+                                            fit: BoxFit.cover,
+                                            width: 42,
+                                            height: 42,
+                                            errorBuilder: (_, __, ___) =>
+                                                Center(
+                                                  child: Text(
+                                                    user?.initials ?? '--',
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      fontSize: 15,
+                                                    ),
+                                                  ),
+                                                ),
+                                          )
+                                        : (user?.avatar != null &&
+                                              user!.avatar!.isNotEmpty)
+                                        ? Image.network(
+                                            user.avatar!,
+                                            fit: BoxFit.cover,
+                                            width: 42,
+                                            height: 42,
+                                            errorBuilder: (_, __, ___) =>
+                                                Center(
+                                                  child: Text(
+                                                    user.initials,
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      fontSize: 15,
+                                                    ),
+                                                  ),
+                                                ),
+                                          )
+                                        : Container(
+                                            color: Colors.white.withValues(
+                                              alpha: 0.2,
+                                            ),
+                                            child: Center(
+                                              child: Text(
+                                                user?.initials ?? '--',
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w700,
+                                                  fontSize: 15,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
                                   ),
                                 ),
                                 const SizedBox(width: 10),

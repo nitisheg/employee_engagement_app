@@ -48,8 +48,9 @@ class AuthProvider extends ChangeNotifier {
       final profileApi = ProfileApiService();
       final data = await profileApi.getDashboard();
       _dashboard = DashboardModel.fromJson(data);
-      if (_dashboard?.user.avatar != null && _dashboard!.user.avatar.isNotEmpty) {
-        _user = _user?.copyWith(avatar: _dashboard.user.avatar);
+      if (_dashboard?.user.avatar != null &&
+          _dashboard!.user.avatar.isNotEmpty) {
+        _user = _user?.copyWith(avatar: _dashboard?.user.avatar);
       }
       notifyListeners();
       return true;

@@ -70,11 +70,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         height: (MediaQuery.of(context).size.width * 0.23)
                             .clamp(72.0, 100.0),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFFF6B35), Color(0xFFFF8E53)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 3),
                           boxShadow: [
@@ -85,15 +80,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ],
                         ),
-                        child: Center(
-                          child: Text(
-                            user.initials,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 28,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
+                        child: ClipOval(
+                          child: user.avatar != null && user.avatar!.isNotEmpty
+                              ? Image.network(
+                                  user.avatar!,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Container(
+                                        color: AppColors.primary,
+                                        child: Center(
+                                          child: Text(
+                                            user.initials,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 28,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                )
+                              : Container(
+                                  color: AppColors.primary,
+                                  child: Center(
+                                    child: Text(
+                                      user.initials,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                         ),
                       ),
                       const SizedBox(height: 10),

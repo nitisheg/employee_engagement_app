@@ -259,6 +259,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     fit: BoxFit.cover,
                                   ),
                                 )
+                              : (authProvider.user?.avatar != null &&
+                                    authProvider.user!.avatar!.isNotEmpty)
+                              ? ClipOval(
+                                  child: Image.network(
+                                    authProvider.user!.avatar!,
+                                    width: 100,
+                                    height: 100,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (context, error, stackTrace) => Center(
+                                          child: Text(
+                                            authProvider.user?.initials ?? '?',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 32,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                  ),
+                                )
                               : Center(
                                   child: Text(
                                     authProvider.user?.initials ?? '?',
@@ -457,7 +478,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             },
                             decoration: InputDecoration(
                               labelText: 'Current Password',
-                              prefixIcon: const Icon(Icons.lock_outline_rounded),
+                              prefixIcon: const Icon(
+                                Icons.lock_outline_rounded,
+                              ),
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   _obscureCurrentPassword
@@ -488,7 +511,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             },
                             decoration: InputDecoration(
                               labelText: 'New Password',
-                              prefixIcon: const Icon(Icons.lock_outline_rounded),
+                              prefixIcon: const Icon(
+                                Icons.lock_outline_rounded,
+                              ),
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   _obscureNewPassword
@@ -496,8 +521,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       : Icons.visibility_outlined,
                                 ),
                                 onPressed: () => setState(
-                                  () =>
-                                      _obscureNewPassword = !_obscureNewPassword,
+                                  () => _obscureNewPassword =
+                                      !_obscureNewPassword,
                                 ),
                               ),
                             ),
@@ -519,7 +544,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             },
                             decoration: InputDecoration(
                               labelText: 'Confirm Password',
-                              prefixIcon: const Icon(Icons.lock_outline_rounded),
+                              prefixIcon: const Icon(
+                                Icons.lock_outline_rounded,
+                              ),
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   _obscureConfirmPassword
@@ -557,10 +584,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                         ? Container(
                                             height: 44,
                                             decoration: BoxDecoration(
-                                              gradient: AppColors.primaryGradient,
-                                              borderRadius: BorderRadius.circular(
-                                                8,
-                                              ),
+                                              gradient:
+                                                  AppColors.primaryGradient,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                             ),
                                             child: const Center(
                                               child: CircularProgressIndicator(
@@ -572,7 +599,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                         : ElevatedButton(
                                             onPressed: _handleChangePassword,
                                             style: ElevatedButton.styleFrom(
-                                              backgroundColor: AppColors.primary,
+                                              backgroundColor:
+                                                  AppColors.primary,
                                               foregroundColor: Colors.white,
                                             ),
                                             child: Text(
