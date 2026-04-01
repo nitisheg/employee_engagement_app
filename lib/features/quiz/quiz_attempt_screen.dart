@@ -146,58 +146,227 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
   }
 
   void _showResultDialog(QuizSubmitResult result) {
+    final percentage = (result.percentage * 100).round();
+    final isExcellent = percentage >= 90;
+    final isGood = percentage >= 70;
+    final isPassed = percentage >= 50;
+
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: Text(
-          'Quiz Complete!',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        contentPadding: const EdgeInsets.all(20),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              'Your score: ${result.scoredPoints}/${result.totalQuestions}',
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: AppColors.primary,
+            // Header with icon
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color:
+                    (isExcellent
+                            ? AppColors.success
+                            : isGood
+                            ? AppColors.primary
+                            : isPassed
+                            ? AppColors.warning
+                            : AppColors.error)
+                        .withValues(alpha: 0.1),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Correct answers: ${result.correctAnswers}/${result.totalQuestions}',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                color: AppColors.secondary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Points Earned: ${result.pointsEarned}',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                color: AppColors.success,
+              child: Icon(
+                isExcellent
+                    ? Icons.emoji_events_rounded
+                    : isGood
+                    ? Icons.thumb_up_rounded
+                    : isPassed
+                    ? Icons.check_circle_rounded
+                    : Icons.error_rounded,
+                color: isExcellent
+                    ? AppColors.success
+                    : isGood
+                    ? AppColors.primary
+                    : isPassed
+                    ? AppColors.warning
+                    : AppColors.error,
+                size: 48,
               ),
             ),
             const SizedBox(height: 16),
-            LinearProgressIndicator(
-              value: result.percentage,
-              backgroundColor: AppColors.surface,
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+
+            // Title
+            Text(
+              isExcellent
+                  ? 'Excellent Work!'
+                  : isGood
+                  ? 'Great Job!'
+                  : isPassed
+                  ? 'Well Done!'
+                  : 'Keep Trying!',
+              style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Quiz Completed',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Score display
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color:
+                    (isExcellent
+                            ? AppColors.success
+                            : isGood
+                            ? AppColors.primary
+                            : isPassed
+                            ? AppColors.warning
+                            : AppColors.error)
+                        .withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    '$percentage%',
+                    style: GoogleFonts.poppins(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w800,
+                      color: isExcellent
+                          ? AppColors.success
+                          : isGood
+                          ? AppColors.primary
+                          : isPassed
+                          ? AppColors.warning
+                          : AppColors.error,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${result.correctAnswers}/${result.totalQuestions} Correct',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Stats row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _ResultStatItem(
+                  icon: Icons.check_circle_rounded,
+                  value: '${result.correctAnswers}',
+                  label: 'Correct',
+                  color: AppColors.success,
+                ),
+                _ResultStatItem(
+                  icon: Icons.cancel_rounded,
+                  value: '${result.totalQuestions - result.correctAnswers}',
+                  label: 'Incorrect',
+                  color: AppColors.error,
+                ),
+                _ResultStatItem(
+                  icon: Icons.stars_rounded,
+                  value: '${result.pointsEarned}',
+                  label: 'Points',
+                  color: AppColors.primary,
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // Progress bar
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Performance',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    Text(
+                      '$percentage%',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                LinearProgressIndicator(
+                  value: result.percentage,
+                  backgroundColor: AppColors.surface,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    isExcellent
+                        ? AppColors.success
+                        : isGood
+                        ? AppColors.primary
+                        : isPassed
+                        ? AppColors.warning
+                        : AppColors.error,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Close dialog
-              Navigator.of(context).pop(); // Go back to quiz list
-            },
-            child: const Text('Done'),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+                Navigator.of(context).pop(); // Go back to quiz list
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isExcellent
+                    ? AppColors.success
+                    : isGood
+                    ? AppColors.primary
+                    : isPassed
+                    ? AppColors.warning
+                    : AppColors.error,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'Continue',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
           ),
         ],
+        actionsPadding: const EdgeInsets.all(20),
       ),
     );
   }
@@ -430,6 +599,52 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
           },
         ),
       ),
+    );
+  }
+}
+
+class _ResultStatItem extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
+
+  const _ResultStatItem({
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color.withValues(alpha: 0.1),
+          ),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            color: AppColors.textSecondary,
+          ),
+        ),
+      ],
     );
   }
 }

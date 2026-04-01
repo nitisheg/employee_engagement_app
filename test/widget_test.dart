@@ -5,7 +5,7 @@ import 'package:employee_engagement_app/main.dart';
 void main() {
   testWidgets('App smoke test', (WidgetTester tester) async {
     await tester.pumpWidget(
-      EmployeeEngagementApp(authProvider: AuthProvider()),
+      EmployeeEngagementApp(authProvider: AuthProvider(), onboardingCompleted: true,),
     );
     expect(find.text('EngageHub'), findsAny);
   });

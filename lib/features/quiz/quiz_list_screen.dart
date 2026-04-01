@@ -16,13 +16,36 @@ class QuizListScreen extends StatefulWidget {
   State<QuizListScreen> createState() => _QuizListScreenState();
 }
 
-class _QuizListScreenState extends State<QuizListScreen> {
+class _QuizListScreenState extends State<QuizListScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(_onTabChanged);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<QuizProvider>().fetchActiveQuizzes();
+      _fetchQuizzesForTab(0);
     });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _onTabChanged() {
+    if (_tabController.indexIsChanging) {
+      _fetchQuizzesForTab(_tabController.index);
+    }
+  }
+
+  void _fetchQuizzesForTab(int index) {
+    final filters = ['all', 'live', 'upcoming'];
+    context.read<QuizProvider>().fetchActiveQuizzes(filter: filters[index]);
   }
 
   @override
@@ -88,94 +111,136 @@ class _QuizListScreenState extends State<QuizListScreen> {
             ],
           ),
           SliverToBoxAdapter(
-            child: Consumer<QuizProvider>(
-              builder: (context, provider, child) {
-                if (provider.loadingQuizzes) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(40),
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }
-
-                if (provider.errorMessage != null) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(40),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.error_outline_rounded,
-                            size: 48,
-                            color: AppColors.error,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            provider.errorMessage!,
-                            style: GoogleFonts.poppins(
-                              color: AppColors.textSecondary,
-                              fontSize: 14,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () => provider.fetchActiveQuizzes(),
-                            child: const Text('Retry'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
-
-                final quizzes = provider.activeQuizzes;
-                if (quizzes.isEmpty) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(40),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.quiz_rounded,
-                            size: 48,
-                            color: AppColors.textSecondary,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'No active quizzes available',
-                            style: GoogleFonts.poppins(
-                              color: AppColors.textSecondary,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
-
-                return Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: (MediaQuery.of(context).size.width * 0.042)
-                        .clamp(12.0, 24.0),
-                    vertical: 16,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SectionHeader(title: 'Active Quizzes'),
-                      const SizedBox(height: 12),
-                      ...quizzes.map((quiz) => _QuizCard(quiz: quiz)).toList(),
+            child: Column(
+              children: [
+                // Tab Bar
+                Container(
+                  color: AppColors.primary,
+                  child: TabBar(
+                    controller: _tabController,
+                    indicatorColor: Colors.white,
+                    indicatorWeight: 3,
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Colors.white.withValues(alpha: 0.7),
+                    tabs: const [
+                      Tab(text: 'All'),
+                      Tab(text: 'Live'),
+                      Tab(text: 'Upcoming'),
                     ],
                   ),
-                );
-              },
+                ),
+                // Tab Bar View
+                SizedBox(
+                  height:
+                      MediaQuery.of(context).size.height -
+                      200, // Adjust height as needed
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildQuizList('all'),
+                      _buildQuizList('live'),
+                      _buildQuizList('upcoming'),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildQuizList(String filter) {
+    return Consumer<QuizProvider>(
+      builder: (context, provider, child) {
+        if (provider.loadingQuizzes) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(40),
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        if (provider.errorMessage != null) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(40),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.error_outline_rounded,
+                    size: 48,
+                    color: AppColors.error,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    provider.errorMessage!,
+                    style: GoogleFonts.poppins(
+                      color: AppColors.textSecondary,
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => _fetchQuizzesForTab(_tabController.index),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final quizzes = provider.activeQuizzes;
+        if (quizzes.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(40),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.quiz_rounded,
+                    size: 48,
+                    color: AppColors.textSecondary,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No ${filter == 'all' ? 'active' : filter} quizzes available',
+                    style: GoogleFonts.poppins(
+                      color: AppColors.textSecondary,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: (MediaQuery.of(context).size.width * 0.042).clamp(
+              12.0,
+              24.0,
+            ),
+            vertical: 16,
+          ),
+          child: SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ...quizzes.map((quiz) => _QuizCard(quiz: quiz)).toList(),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -11,6 +11,7 @@ import '../games/quiz_screen.dart';
 import '../games/sudoku_screen.dart';
 import '../games/party_games/party_games_screen.dart';
 import '../challenges/challenges_screen.dart';
+import '../notifications/notifications_screen.dart';
 import '../rewards/rewards_screen.dart';
 import '../certifications/certifications_screen.dart';
 import '../attendance/attendance_screen.dart';
@@ -164,8 +165,14 @@ class HomeScreen extends StatelessWidget {
                                     color: Colors.white,
                                     size: 26,
                                   ),
-                                  onPressed: () {},
-                                ),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const NotificationsScreen(),
+                                      ),
+                                    );
+                                  },                                ),
                                 Positioned(
                                   right: 10,
                                   top: 10,

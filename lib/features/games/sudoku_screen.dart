@@ -377,7 +377,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
               Row(
                 children: [
                   const Text('Difficulty:'),
-                  Spacer(),
+                  SizedBox(width: 20,),
                   DropdownButton<String>(
                     value: selectedDifficulty,
                     items: ['Easy', 'Medium', 'Hard']

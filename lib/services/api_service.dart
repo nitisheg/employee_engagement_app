@@ -209,8 +209,11 @@ class ProfileApiService {
 class QuizApiService {
   final Dio _dio = ApiClient.instance.dio;
 
-  Future<List<dynamic>> getActiveQuizzes() async {
-    final resp = await _dio.get<Map<String, dynamic>>('/api/quizzes/active');
+  Future<List<dynamic>> getActiveQuizzes({String filter = 'all'}) async {
+    final resp = await _dio.get<Map<String, dynamic>>(
+      '/api/quizzes/active',
+      queryParameters: {'filter': filter},
+    );
     return resp.data!['quizzes'] as List<dynamic>? ?? [];
   }
 

@@ -47,12 +47,12 @@ class QuizProvider extends ChangeNotifier {
 
   // ── Actions ──────────────────────────────────────────────────────────────────
 
-  Future<void> fetchActiveQuizzes() async {
+  Future<void> fetchActiveQuizzes({String filter = 'all'}) async {
     _loadingQuizzes = true;
     _errorMessage = null;
     notifyListeners();
     try {
-      final list = await _quizApi.getActiveQuizzes();
+      final list = await _quizApi.getActiveQuizzes(filter: filter);
       _activeQuizzes = list
           .map((q) => ActiveQuiz.fromJson(q as Map<String, dynamic>))
           .toList();
