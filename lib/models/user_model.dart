@@ -14,6 +14,8 @@ class UserModel {
   // Display-only fields (not from API, kept with defaults for UI)
   final int totalPoints;
   final int rank;
+  final int currentStreak;
+  final int longestStreak;
   final int streakDays;
   final String level;
   final int levelProgressPoints;
@@ -36,6 +38,8 @@ class UserModel {
     this.status = 'active',
     this.totalPoints = 0,
     this.rank = 0,
+    this.currentStreak = 0,
+    this.longestStreak = 0,
     this.streakDays = 0,
     this.level = 'Beginner',
     this.levelProgressPoints = 0,
@@ -67,6 +71,13 @@ class UserModel {
       avatar: json['avatar'] as String?,
       joiningDate: (json['joining_date'] ?? json['joiningDate']) as String?,
       status: (json['status'] ?? 'active') as String,
+      totalPoints: (json['total_points'] ?? json['totalPoints'] ?? 0) as int,
+      rank: (json['rank'] ?? 0) as int,
+      currentStreak:
+          (json['currentStreak'] ?? json['current_streak'] ?? 0) as int,
+      longestStreak:
+          (json['longestStreak'] ?? json['longest_streak'] ?? 0) as int,
+      streakDays: (json['streakDays'] ?? json['streak_days'] ?? 0) as int,
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'] as String) ?? DateTime.now()
           : DateTime.now(),
@@ -86,6 +97,11 @@ class UserModel {
     if (avatar != null) 'avatar': avatar,
     if (joiningDate != null) 'joiningDate': joiningDate,
     'status': status,
+    'total_points': totalPoints,
+    'rank': rank,
+    'currentStreak': currentStreak,
+    'longestStreak': longestStreak,
+    'streakDays': streakDays,
     'createdAt': createdAt.toIso8601String(),
   };
 
@@ -98,6 +114,8 @@ class UserModel {
     String? joiningDate,
     int? totalPoints,
     int? rank,
+    int? currentStreak,
+    int? longestStreak,
     int? streakDays,
     String? level,
     int? levelProgressPoints,
@@ -118,6 +136,8 @@ class UserModel {
       status: status,
       totalPoints: totalPoints ?? this.totalPoints,
       rank: rank ?? this.rank,
+      currentStreak: currentStreak ?? this.currentStreak,
+      longestStreak: longestStreak ?? this.longestStreak,
       streakDays: streakDays ?? this.streakDays,
       level: level ?? this.level,
       levelProgressPoints: levelProgressPoints ?? this.levelProgressPoints,

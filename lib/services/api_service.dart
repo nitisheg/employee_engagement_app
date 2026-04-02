@@ -16,6 +16,14 @@ class ApiClient {
   final _storage = const FlutterSecureStorage();
   final _cookieJar = CookieJar();
 
+  static dynamic _unwrapResponse(dynamic responseData) {
+    if (responseData is Map<String, dynamic> &&
+        responseData.containsKey('data')) {
+      return responseData['data'];
+    }
+    return responseData;
+  }
+
   ApiClient._() {
     dio = Dio(
       BaseOptions(
@@ -26,6 +34,14 @@ class ApiClient {
       ),
     );
     dio.interceptors.add(CookieManager(_cookieJar));
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onResponse: (response, handler) {
+          response.data = _unwrapResponse(response.data);
+          handler.next(response);
+        },
+      ),
+    );
     dio.interceptors.add(_AuthInterceptor(dio, _storage, _cookieJar));
   }
 
