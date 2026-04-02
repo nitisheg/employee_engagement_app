@@ -30,10 +30,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
   final int maxMistakes = 3;
 
   final Random _rand = Random();
-
   late List<List<TextEditingController>> controllers;
-
-  /// New flags for mistake highlighting
   bool showMistakes = false;
   List<List<bool>> wrongCells = List.generate(9, (_) => List.filled(9, false));
 
@@ -216,7 +213,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         ? 100
         : 200;
 
-    int multiplier = selectedDifficulty == "Easy"
+    int multiplier = selectedDifficulty == "Choose"
         ? 1
         : selectedDifficulty == "Medium"
         ? 2
@@ -377,7 +374,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
               Row(
                 children: [
                   const Text('Difficulty:'),
-                  SizedBox(width: 20,),
+                  Spacer(),
                   DropdownButton<String>(
                     value: selectedDifficulty,
                     items: ['Easy', 'Medium', 'Hard']

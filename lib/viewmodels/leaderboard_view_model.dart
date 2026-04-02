@@ -1,12 +1,18 @@
+import 'package:dio/dio.dart';
+import '../services/api_service.dart';
 import 'base_view_model.dart';
 
-// Placeholder for LeaderboardApiService - to be implemented
 class LeaderboardApiService {
+  final Dio _dio = ApiClient.instance.dio;
+
   Future<List<dynamic>> getOverallLeaderboard({
     String period = 'monthly',
   }) async {
-    // TODO: Implement actual API call
-    return [];
+    final resp = await _dio.get<Map<String, dynamic>>(
+      '/api/user/leaderboard',
+      queryParameters: {'period': period},
+    );
+    return (resp.data?['leaderboard'] as List<dynamic>?) ?? [];
   }
 
   Future<List<dynamic>> getQuizLeaderboard({String period = 'monthly'}) async {

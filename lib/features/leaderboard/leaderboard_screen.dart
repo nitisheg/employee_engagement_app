@@ -12,7 +12,7 @@ class _Employee {
   final String department;
   final int points;
   final int rank;
-  final int change; // positive = up, negative = down, 0 = same
+  final int change;
   final String initials;
   final Color avatarColor;
 
@@ -25,6 +25,22 @@ class _Employee {
     required this.initials,
     required this.avatarColor,
   });
+
+  factory _Employee.fromLeaderboardEntry(LeaderboardEntry e) {
+    return _Employee(
+      name: e.name,
+      department: '',
+      points: e.points,
+      rank: e.rank,
+      change: 0,
+      initials: e.initials.isNotEmpty
+          ? e.initials
+          : (e.name.isNotEmpty
+                ? e.name.split(' ').map((s) => s[0]).join()
+                : '?'),
+      avatarColor: AppColors.primary,
+    );
+  }
 }
 
 class LeaderboardScreen extends StatefulWidget {
@@ -51,6 +67,28 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     });
   }
 
+  static const List<LeaderboardPeriod> _periodTabs = [
+    LeaderboardPeriod.allTime,
+    LeaderboardPeriod.monthly,
+    LeaderboardPeriod.weekly,
+    LeaderboardPeriod.today,
+  ];
+
+  static String _periodLabel(LeaderboardPeriod period) {
+    switch (period) {
+      case LeaderboardPeriod.allTime:
+        return 'All Time';
+      case LeaderboardPeriod.monthly:
+        return 'Monthly';
+      case LeaderboardPeriod.weekly:
+        return 'Weekly';
+      case LeaderboardPeriod.today:
+        return 'Today';
+      default:
+        return 'All Time';
+    }
+  }
+
   @override
   void dispose() {
     _tabController.dispose();
@@ -58,105 +96,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   }
 
   void _onTabChanged() {
-    final newPeriod = LeaderboardPeriod.values[_tabController.index];
+    final newPeriod = _periodTabs[_tabController.index];
     if (newPeriod != _currentPeriod) {
       setState(() => _currentPeriod = newPeriod);
       context.read<LeaderboardProvider>().fetchLeaderboard(newPeriod);
     }
   }
-
-  static const List<_Employee> _thisMonth = [
-    _Employee(
-      name: 'Jordan Kim',
-      department: 'HR',
-      points: 890,
-      rank: 1,
-      change: 3,
-      initials: 'JK',
-      avatarColor: Color(0xFFF59E0B),
-    ),
-    _Employee(
-      name: 'Sarah Chen',
-      department: 'Engineering',
-      points: 820,
-      rank: 2,
-      change: -1,
-      initials: 'SC',
-      avatarColor: Color(0xFFE53935),
-    ),
-    _Employee(
-      name: 'Morgan Davis',
-      department: 'Engineering',
-      points: 760,
-      rank: 3,
-      change: 4,
-      initials: 'MD',
-      avatarColor: Color(0xFF14B8A6),
-    ),
-    _Employee(
-      name: 'Alex Johnson',
-      department: 'Engineering',
-      points: 640,
-      rank: 4,
-      change: 1,
-      initials: 'AJ',
-      avatarColor: Color(0xFF00ACC1),
-    ),
-    _Employee(
-      name: 'Priya Sharma',
-      department: 'Sales',
-      points: 580,
-      rank: 5,
-      change: -2,
-      initials: 'PS',
-      avatarColor: Color(0xFF10B981),
-    ),
-    _Employee(
-      name: 'Marcus Lee',
-      department: 'Marketing',
-      points: 510,
-      rank: 6,
-      change: -4,
-      initials: 'ML',
-      avatarColor: Color(0xFFFF6B35),
-    ),
-    _Employee(
-      name: 'Riley Martinez',
-      department: 'Sales',
-      points: 470,
-      rank: 7,
-      change: 2,
-      initials: 'RM',
-      avatarColor: Color(0xFF06B6D4),
-    ),
-    _Employee(
-      name: 'Taylor Brown',
-      department: 'Finance',
-      points: 420,
-      rank: 8,
-      change: -2,
-      initials: 'TB',
-      avatarColor: Color(0xFFEC4899),
-    ),
-    _Employee(
-      name: 'Casey Wilson',
-      department: 'Marketing',
-      points: 390,
-      rank: 9,
-      change: 1,
-      initials: 'CW',
-      avatarColor: Color(0xFFF97316),
-    ),
-    _Employee(
-      name: 'Drew Thompson',
-      department: 'HR',
-      points: 310,
-      rank: 10,
-      change: 0,
-      initials: 'DT',
-      avatarColor: Color(0xFF84CC16),
-    ),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -212,12 +157,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                       fontWeight: FontWeight.w600,
                     ),
                     unselectedLabelStyle: GoogleFonts.poppins(fontSize: 13),
-                    tabs: const [
-                      Tab(text: 'All Time'),
-                      Tab(text: 'This Month'),
-                      Tab(text: 'This Week'),
-                      Tab(text: 'Teams'),
-                    ],
+                    tabs: _periodTabs
+                        .map((p) => Tab(text: _periodLabel(p)))
+                        .toList(),
                   ),
                 ],
               ),
@@ -228,15 +170,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           Expanded(
             child: TabBarView(
               controller: _tabController,
-              children: [
-                _LeaderboardList(employees: _thisMonth, userRank: 1),
-                _LeaderboardList(employees: _thisMonth, userRank: 4),
-                _LeaderboardList(
-                  employees: _thisMonth.reversed.toList(),
-                  userRank: 7,
-                ),
-                _TeamsTab(),
-              ],
+              children: _periodTabs.map((period) {
+                return _LeaderboardTab(period: period);
+              }).toList(),
             ),
           ),
         ],
@@ -245,11 +181,55 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   }
 }
 
+class _LeaderboardTab extends StatelessWidget {
+  final LeaderboardPeriod period;
+
+  const _LeaderboardTab({required this.period});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<LeaderboardProvider>(
+      builder: (context, provider, child) {
+        if (provider.currentPeriod != period) {
+          // Ensure we show loading state only for this period
+          return const SizedBox.shrink();
+        }
+
+        if (provider.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (provider.errorMessage != null) {
+          return Center(child: Text('Error: ${provider.errorMessage}'));
+        }
+
+        final entries = provider.entries;
+        final userEntry = provider.currentUserEntry;
+
+        if (entries.isEmpty) {
+          return const Center(child: Text('No leaderboard data available'));
+        }
+
+        final employees = entries
+            .map((entry) => _Employee.fromLeaderboardEntry(entry))
+            .toList();
+
+        return _LeaderboardList(
+          employees: employees,
+          userEntry: userEntry != null
+              ? _Employee.fromLeaderboardEntry(userEntry)
+              : null,
+        );
+      },
+    );
+  }
+}
+
 class _LeaderboardList extends StatelessWidget {
   final List<_Employee> employees;
-  final int userRank;
+  final _Employee? userEntry;
 
-  const _LeaderboardList({required this.employees, required this.userRank});
+  const _LeaderboardList({required this.employees, this.userEntry});
 
   @override
   Widget build(BuildContext context) {
@@ -319,9 +299,9 @@ class _LeaderboardList extends StatelessWidget {
                     color: Colors.white.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Text(
-                      'AJ',
+                      userEntry?.initials ?? 'U',
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
@@ -335,21 +315,30 @@ class _LeaderboardList extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Alex Johnson (You)',
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
-                        ),
+                      Builder(
+                        builder: (context) {
+                          final user = userEntry;
+                          final nameText = user != null
+                              ? '${user.name} (You)'
+                              : 'You';
+                          return Text(
+                            nameText,
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                          );
+                        },
                       ),
-                      Text(
-                        'Engineering',
-                        style: GoogleFonts.poppins(
-                          color: Colors.white.withValues(alpha: 0.8),
-                          fontSize: 11,
+                      if (userEntry?.department.isNotEmpty ?? false)
+                        Text(
+                          userEntry!.department,
+                          style: GoogleFonts.poppins(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            fontSize: 11,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -357,7 +346,7 @@ class _LeaderboardList extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      'Rank #$userRank',
+                      'Rank #${userEntry?.rank ?? employees.first.rank}',
                       style: GoogleFonts.poppins(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
@@ -365,7 +354,7 @@ class _LeaderboardList extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '2,450 pts',
+                      '${userEntry?.points ?? employees.first.points} pts',
                       style: GoogleFonts.poppins(
                         color: Colors.white.withValues(alpha: 0.8),
                         fontSize: 12,

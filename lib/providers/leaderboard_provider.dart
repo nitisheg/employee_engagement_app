@@ -8,43 +8,59 @@ class LeaderboardProvider extends ChangeNotifier {
 
   bool _isLoading = false;
   String? _errorMessage;
-  LeaderboardResponse? _leaderboardData;
+  List<LeaderboardEntry> _entries = [];
+  LeaderboardEntry? _currentUserEntry;
+  LeaderboardPeriod _currentPeriod = LeaderboardPeriod.allTime;
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
-  LeaderboardResponse? get leaderboardData => _leaderboardData;
+  List<LeaderboardEntry> get entries => _entries;
+  LeaderboardEntry? get currentUserEntry => _currentUserEntry;
+  LeaderboardPeriod get currentPeriod => _currentPeriod;
 
   Future<void> fetchLeaderboard(LeaderboardPeriod period) async {
     _isLoading = true;
     _errorMessage = null;
+    _currentPeriod = period;
     notifyListeners();
 
     try {
-      // TODO: Update endpoint based on API documentation
-      final endpoint = _getEndpointForPeriod(period);
-      final resp = await _dio.get<Map<String, dynamic>>(endpoint);
+      final endpoint = '/api/user/leaderboard';
+      final resp = await _dio.get<Map<String, dynamic>>(
+        endpoint,
+        queryParameters: {'period': _periodToString(period)},
+      );
 
-      _leaderboardData = LeaderboardResponse.fromJson(resp.data!);
+      final responseData = resp.data ?? <String, dynamic>{};
+      final leaderboardData = LeaderboardResponse.fromJson(responseData);
+      _entries = leaderboardData.entries;
+      _currentUserEntry = leaderboardData.currentUserEntry;
     } on DioException catch (e) {
       _errorMessage = ApiException.fromDioException(e);
+      _entries = [];
+      _currentUserEntry = null;
     } catch (e) {
       _errorMessage = e.toString();
+      _entries = [];
+      _currentUserEntry = null;
     }
 
     _isLoading = false;
     notifyListeners();
   }
 
-  String _getEndpointForPeriod(LeaderboardPeriod period) {
+  String _periodToString(LeaderboardPeriod period) {
     switch (period) {
       case LeaderboardPeriod.allTime:
-        return '/api/leaderboard/all-time';
-      case LeaderboardPeriod.thisMonth:
-        return '/api/leaderboard/this-month';
-      case LeaderboardPeriod.thisWeek:
-        return '/api/leaderboard/this-week';
+        return 'all-time';
+      case LeaderboardPeriod.monthly:
+        return 'monthly';
+      case LeaderboardPeriod.weekly:
+        return 'weekly';
+      case LeaderboardPeriod.today:
+        return 'today';
       case LeaderboardPeriod.teams:
-        return '/api/leaderboard/teams';
+        return 'teams';
     }
   }
 

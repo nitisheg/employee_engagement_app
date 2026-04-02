@@ -1,49 +1,47 @@
-enum LeaderboardPeriod { allTime, thisMonth, thisWeek, teams }
+enum LeaderboardPeriod { allTime, monthly, weekly, today, teams }
 
 class LeaderboardEntry {
-  final int userId;
+  final String userId;
   final String name;
-  final String department;
+  final String? avatar;
   final String initials;
-  final String avatarColorHex;
   final int points;
   final int rank;
-  final int rankChange; // positive = moved up, negative = moved down
+  final bool isCurrentUser;
 
   const LeaderboardEntry({
     required this.userId,
     required this.name,
-    required this.department,
+    this.avatar,
     required this.initials,
-    required this.avatarColorHex,
     required this.points,
     required this.rank,
-    required this.rankChange,
+    this.isCurrentUser = false,
   });
 
   factory LeaderboardEntry.fromJson(Map<String, dynamic> json) {
+    final rawUserId = json['user_id'] ?? json['userId'] ?? '';
     return LeaderboardEntry(
-      userId: json['user_id'] as int,
-      name: json['name'] as String,
-      department: json['department'] as String,
-      initials: json['initials'] as String,
-      avatarColorHex: json['avatar_color_hex'] as String? ?? '#E53935',
-      points: json['points'] as int,
-      rank: json['rank'] as int,
-      rankChange: json['rank_change'] as int? ?? 0,
+      userId: rawUserId is String ? rawUserId : rawUserId?.toString() ?? '',
+      name: (json['name'] ?? '') as String,
+      avatar: json['avatar'] as String?,
+      initials: (json['initials'] ?? '') as String,
+      points: (json['points'] ?? 0) as int,
+      rank: (json['rank'] ?? 0) as int,
+      isCurrentUser:
+          (json['isCurrentUser'] ?? json['is_current_user'] ?? false) as bool,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'user_id': userId,
-        'name': name,
-        'department': department,
-        'initials': initials,
-        'avatar_color_hex': avatarColorHex,
-        'points': points,
-        'rank': rank,
-        'rank_change': rankChange,
-      };
+    'user_id': userId,
+    'name': name,
+    'avatar': avatar,
+    'initials': initials,
+    'points': points,
+    'rank': rank,
+    'isCurrentUser': isCurrentUser,
+  };
 }
 
 class TeamLeaderboardEntry {
@@ -87,26 +85,37 @@ class LeaderboardResponse {
   });
 
   factory LeaderboardResponse.fromJson(Map<String, dynamic> json) {
+    final leaderboard = (json['leaderboard'] as List<dynamic>?) ?? [];
+    final entries = leaderboard
+        .map((e) => LeaderboardEntry.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    final currentUserIndex = entries.indexWhere((e) => e.isCurrentUser);
+    final currentUserEntry = currentUserIndex >= 0
+        ? entries[currentUserIndex]
+        : null;
+
     return LeaderboardResponse(
-      entries: (json['entries'] as List)
-          .map((e) => LeaderboardEntry.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      period: _parsePeriod(json['period'] as String),
-      currentUserEntry: json['current_user_entry'] != null
-          ? LeaderboardEntry.fromJson(
-              json['current_user_entry'] as Map<String, dynamic>)
-          : null,
+      entries: entries,
+      period: _parsePeriod(json['period'] as String? ?? 'all-time'),
+      currentUserEntry: currentUserEntry,
     );
   }
 
   static LeaderboardPeriod _parsePeriod(String s) {
-    switch (s) {
+    switch (s.toLowerCase()) {
+      case 'monthly':
       case 'this_month':
-        return LeaderboardPeriod.thisMonth;
+        return LeaderboardPeriod.monthly;
+      case 'weekly':
       case 'this_week':
-        return LeaderboardPeriod.thisWeek;
+        return LeaderboardPeriod.weekly;
+      case 'today':
+        return LeaderboardPeriod.today;
       case 'teams':
         return LeaderboardPeriod.teams;
+      case 'all-time':
+      case 'all_time':
       default:
         return LeaderboardPeriod.allTime;
     }
