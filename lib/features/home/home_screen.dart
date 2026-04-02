@@ -39,158 +39,149 @@ class HomeScreen extends StatelessWidget {
     final dashboard = authProvider.dashboard;
 
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: AppColors.primaryDark,
+        titleSpacing: 0,
+
+        title: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                // 👈 prevents overflow
+                child: Row(
+                  children: [
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: ClipOval(
+                        child:
+                            (dashboard?.user.avatar != null &&
+                                (dashboard?.user.avatar?.isNotEmpty ?? false))
+                            ? Image.network(
+                                dashboard!.user.avatar,
+                                fit: BoxFit.cover,
+                                width: 42,
+                                height: 42,
+                              )
+                            : (user?.avatar != null &&
+                                  (user?.avatar?.isNotEmpty ?? false))
+                            ? Image.network(
+                                user!.avatar!,
+                                fit: BoxFit.cover,
+                                width: 42,
+                                height: 42,
+                              )
+                            : Container(
+                                color: Colors.white.withOpacity(0.2),
+                                child: Center(
+                                  child: Text(
+                                    user?.initials ?? '--',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+
+                    /// 👇 TEXT AREA (handles long names)
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "${_getTimeBasedGreeting()}, ${(user?.name?.split(' ').first ?? 'Employee')}!",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis, // 👈 ...
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          Text(
+                            'Ready to earn points today?',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(
+                              color: Colors.white.withOpacity(0.8),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              /// 👇 NOTIFICATION ICON
+              Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.notifications_outlined,
+                      color: Colors.white,
+                      size: 26,
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const NotificationsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  Positioned(
+                    right: 10,
+                    top: 10,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: AppColors.secondary,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             expandedHeight: (MediaQuery.of(context).size.height * 0.22).clamp(
               150.0,
-              210.0,
+              150.0,
             ),
             pinned: true,
             stretch: true,
-            backgroundColor: AppColors.primary,
+            backgroundColor: AppColors.primaryDark,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
-                decoration: const BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                ),
+                decoration: const BoxDecoration(color: AppColors.primaryDark),
                 child: SafeArea(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  width: 42,
-                                  height: 42,
-                                  decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: ClipOval(
-                                    child:
-                                        (dashboard?.user.avatar != null &&
-                                            dashboard!.user.avatar.isNotEmpty)
-                                        ? Image.network(
-                                            dashboard.user.avatar,
-                                            fit: BoxFit.cover,
-                                            width: 42,
-                                            height: 42,
-                                            errorBuilder: (_, __, ___) =>
-                                                Center(
-                                                  child: Text(
-                                                    user?.initials ?? '--',
-                                                    style: const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                      fontSize: 15,
-                                                    ),
-                                                  ),
-                                                ),
-                                          )
-                                        : (user?.avatar != null &&
-                                              user!.avatar!.isNotEmpty)
-                                        ? Image.network(
-                                            user.avatar!,
-                                            fit: BoxFit.cover,
-                                            width: 42,
-                                            height: 42,
-                                            errorBuilder: (_, __, ___) =>
-                                                Center(
-                                                  child: Text(
-                                                    user.initials,
-                                                    style: const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                      fontSize: 15,
-                                                    ),
-                                                  ),
-                                                ),
-                                          )
-                                        : Container(
-                                            color: Colors.white.withValues(
-                                              alpha: 0.2,
-                                            ),
-                                            child: Center(
-                                              child: Text(
-                                                user?.initials ?? '--',
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.w700,
-                                                  fontSize: 15,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "${_getTimeBasedGreeting()}, ${user?.name.split(' ').first ?? 'Employee'}! 👋",
-                                      style: GoogleFonts.poppins(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-
-                                    Text(
-                                      'Ready to earn points today?',
-                                      style: GoogleFonts.poppins(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.8,
-                                        ),
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            Stack(
-                              children: [
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.notifications_outlined,
-                                    color: Colors.white,
-                                    size: 26,
-                                  ),
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            const NotificationsScreen(),
-                                      ),
-                                    );
-                                  },
-                                ),
-                                Positioned(
-                                  right: 10,
-                                  top: 10,
-                                  child: Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: const BoxDecoration(
-                                      color: AppColors.secondary,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
                         const SizedBox(height: 16),
                         Row(
                           children: [

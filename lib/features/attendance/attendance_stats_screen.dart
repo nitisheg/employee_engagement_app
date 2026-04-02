@@ -1,82 +1,100 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/common_widgets.dart';
-import 'attendance_screen.dart';
+import '../../providers/attendance_provider.dart';
+import '../../models/attendance_model.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
-class AttendanceStatsScreen extends StatelessWidget {
-  final Map<DateTime, LocalAttendanceRecord> records;
-  final int totalPoints;
-  final int currentStreak;
-  final int bestStreak;
+class AttendanceStatsScreen extends StatefulWidget {
+  const AttendanceStatsScreen({super.key});
 
-  const AttendanceStatsScreen({
-    super.key,
-    required this.records,
-    required this.totalPoints,
-    required this.currentStreak,
-    required this.bestStreak,
-  });
+  @override
+  State<AttendanceStatsScreen> createState() => _AttendanceStatsScreenState();
+}
+
+class _AttendanceStatsScreenState extends State<AttendanceStatsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Fetch initial data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = context.read<AttendanceProvider>();
+      provider.fetchAttendanceHistory();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Scaffold(
-        backgroundColor: AppColors.background,
-        appBar: AppBar(
-          title: const Text('Attendance Statistics'),
-          centerTitle: true,
-          backgroundColor: AppColors.primary,
-          surfaceTintColor: Colors.white,
-          elevation: 0,
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(1),
-            child: Container(color: Colors.grey.shade300, height: 1),
-          ),
-        ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Overview Card
-              AppCard(
-                child: Column(
-                  children: [
-                    const Text(
-                      'Attendance Overview',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildChart(),
-                    const SizedBox(height: 24),
-                    _buildStats(),
-                  ],
-                ),
+    return Consumer<AttendanceProvider>(
+      builder: (context, provider, child) {
+        final attendanceHistory = provider.attendanceHistory;
+
+        return SafeArea(
+          top: false,
+          child: Scaffold(
+            backgroundColor: AppColors.background,
+            appBar: AppBar(
+              title: const Text('Attendance Statistics'),
+              centerTitle: true,
+              backgroundColor: AppColors.primary,
+              surfaceTintColor: Colors.white,
+              elevation: 0,
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(1),
+                child: Container(color: Colors.grey.shade300, height: 1),
               ),
-              const SizedBox(height: 16),
-              // Streak Section
-              AppCard(child: _buildStreakSection()),
-              const SizedBox(height: 16),
-              // Points Section
-              AppCard(child: _buildPointsSection()),
-              const SizedBox(height: 16),
-              // Distribution Chart
-              AppCard(child: _buildDistribution()),
-            ],
+            ),
+            body: provider.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : attendanceHistory == null
+                ? const Center(child: Text('No data available'))
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Overview Card
+                        AppCard(
+                          child: Column(
+                            children: [
+                              const Text(
+                                'Attendance Overview',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              _buildChart(attendanceHistory),
+                              const SizedBox(height: 24),
+                              _buildStats(attendanceHistory),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        // Streak Section
+                        AppCard(child: _buildStreakSection(provider)),
+                        const SizedBox(height: 16),
+                        // Points Section
+                        AppCard(child: _buildPointsSection(attendanceHistory)),
+                        const SizedBox(height: 16),
+                        // Distribution Chart
+                        AppCard(child: _buildDistribution(attendanceHistory)),
+                      ],
+                    ),
+                  ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildChart() {
-    final presentDays = records.values.where((r) => r.isPresent).length;
-    final totalDays = records.values.length;
+  Widget _buildChart(AttendanceHistory attendanceHistory) {
+    final presentDays = attendanceHistory.records
+        .where((record) => record.sessions.isNotEmpty)
+        .length;
+    final totalDays = attendanceHistory.records.length;
     final presentPercentage = totalDays > 0
         ? (presentDays / totalDays) * 100
         : 0.0;
@@ -100,9 +118,13 @@ class AttendanceStatsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStats() {
-    final presentDays = records.values.where((r) => r.isPresent).length;
-    final absentDays = records.values.where((r) => !r.isPresent).length;
+  Widget _buildStats(AttendanceHistory attendanceHistory) {
+    final presentDays = attendanceHistory.records
+        .where((record) => record.sessions.isNotEmpty)
+        .length;
+    final absentDays = attendanceHistory.records
+        .where((record) => record.sessions.isEmpty)
+        .length;
     final totalDays = presentDays + absentDays;
 
     return Row(
@@ -151,7 +173,7 @@ class AttendanceStatsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStreakSection() {
+  Widget _buildStreakSection(AttendanceProvider provider) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -174,7 +196,7 @@ class AttendanceStatsScreen extends StatelessWidget {
                     ),
                     child: Center(
                       child: Text(
-                        '$currentStreak',
+                        '${provider.currentStreak}',
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -204,7 +226,7 @@ class AttendanceStatsScreen extends StatelessWidget {
                     ),
                     child: Center(
                       child: Text(
-                        '$bestStreak',
+                        '${provider.longestStreak}',
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -224,11 +246,39 @@ class AttendanceStatsScreen extends StatelessWidget {
             ),
           ],
         ),
+        if (provider.streakWarning != null) ...[
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.orange.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.orange.withOpacity(0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.warning, color: Colors.orange, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    provider.streakWarning!,
+                    style: const TextStyle(color: Colors.orange, fontSize: 14),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
 
-  Widget _buildPointsSection() {
+  Widget _buildPointsSection(AttendanceHistory attendanceHistory) {
+    final totalPoints = attendanceHistory.records.fold<int>(
+      0,
+      (sum, record) => sum + record.pointsEarned,
+    );
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -265,9 +315,13 @@ class AttendanceStatsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDistribution() {
-    final presentDays = records.values.where((r) => r.isPresent).length;
-    final absentDays = records.values.where((r) => !r.isPresent).length;
+  Widget _buildDistribution(AttendanceHistory attendanceHistory) {
+    final presentDays = attendanceHistory.records
+        .where((record) => record.sessions.isNotEmpty)
+        .length;
+    final absentDays = attendanceHistory.records
+        .where((record) => record.sessions.isEmpty)
+        .length;
     final totalDays = presentDays + absentDays;
 
     return Column(

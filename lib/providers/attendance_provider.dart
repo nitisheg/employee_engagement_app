@@ -8,93 +8,70 @@ class AttendanceProvider extends ChangeNotifier {
 
   bool _isLoading = false;
   bool _isCheckingIn = false;
+  bool _isCheckingOut = false;
   String? _errorMessage;
   String? _successMessage;
-  List<AttendanceRecord> _attendanceHistory = [];
-  AttendanceSummary _stats = const AttendanceSummary(
-    presentDays: 0,
-    absentDays: 0,
-    lateDays: 0,
-    currentStreak: 0,
-    bestStreak: 0,
-    totalPointsEarned: 0,
-    recentRecords: [],
-  );
-  bool _isCheckedInToday = false;
-  String? _lastCheckInTime;
+
+  AttendanceTodayStatus? _todayStatus;
+  AttendanceHistory? _attendanceHistory;
 
   bool get isLoading => _isLoading;
   bool get isCheckingIn => _isCheckingIn;
+  bool get isCheckingOut => _isCheckingOut;
   String? get errorMessage => _errorMessage;
   String? get successMessage => _successMessage;
-  List<AttendanceRecord> get attendanceHistory => _attendanceHistory;
-  AttendanceSummary get stats => _stats;
-  bool get isCheckedInToday => _isCheckedInToday;
-  String? get lastCheckInTime => _lastCheckInTime;
+  AttendanceTodayStatus? get todayStatus => _todayStatus;
+  AttendanceHistory? get attendanceHistory => _attendanceHistory;
 
-  Future<void> fetchAttendanceHistory() async {
+  bool get isCheckedInToday => _todayStatus?.isCheckedIn ?? false;
+  int get currentStreak => _todayStatus?.streak.current ?? 0;
+  int get longestStreak => _todayStatus?.streak.longest ?? 0;
+  String? get streakWarning => _todayStatus?.streak.warning;
+
+  Future<void> fetchTodayStatus() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      // TODO: Update endpoint based on API documentation
       final resp = await _dio.get<Map<String, dynamic>>(
-        '/api/attendance/history',
+        '/api/attendance/today',
       );
-      final history =
-          (resp.data!['history'] as List?)
-              ?.map(
-                (json) =>
-                    AttendanceRecord.fromJson(json as Map<String, dynamic>),
-              )
-              .toList() ??
-          [];
-      _attendanceHistory = history;
-
-      // Update today's check-in status
-      final today = DateTime.now();
-      final todayRecord = history.firstWhere(
-        (record) =>
-            record.date.year == today.year &&
-            record.date.month == today.month &&
-            record.date.day == today.day,
-        orElse: () => AttendanceRecord(
-          id: 0,
-          date: today,
-          checkInTime: null,
-          status: AttendanceCheckStatus.absent,
-          pointsEarned: 0,
-        ),
-      );
-      _isCheckedInToday = todayRecord.checkInTime != null;
+      _todayStatus = AttendanceTodayStatus.fromJson(resp.data!);
     } on DioException catch (e) {
       _errorMessage = ApiException.fromDioException(e);
+      _todayStatus = null;
     } catch (e) {
       _errorMessage = e.toString();
+      _todayStatus = null;
     }
 
     _isLoading = false;
     notifyListeners();
   }
 
-  Future<void> fetchAttendanceStats() async {
+  Future<void> fetchAttendanceHistory({String? month}) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
     try {
-      // TODO: Update endpoint based on API documentation
+      final queryParams = month != null ? {'month': month} : null;
       final resp = await _dio.get<Map<String, dynamic>>(
-        '/api/attendance/stats',
+        '/api/attendance/my',
+        queryParameters: queryParams,
       );
-      _stats = AttendanceSummary.fromJson(
-        resp.data!['stats'] as Map<String, dynamic>,
-      );
-      notifyListeners();
+      _attendanceHistory = AttendanceHistory.fromJson(resp.data!);
     } on DioException catch (e) {
       _errorMessage = ApiException.fromDioException(e);
-      notifyListeners();
+      _attendanceHistory = null;
     } catch (e) {
       _errorMessage = e.toString();
-      notifyListeners();
+      _attendanceHistory = null;
     }
+
+    _isLoading = false;
+    notifyListeners();
   }
 
   Future<bool> checkIn() async {
@@ -104,18 +81,14 @@ class AttendanceProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // TODO: Update endpoint based on API documentation
       final resp = await _dio.post<Map<String, dynamic>>(
-        '/api/attendance/checkin',
+        '/api/attendance/check-in',
       );
       _successMessage =
           resp.data!['message'] as String? ?? 'Checked in successfully!';
-      _isCheckedInToday = true;
-      _lastCheckInTime = DateTime.now().toString();
 
-      // Refresh data
-      await fetchAttendanceHistory();
-      await fetchAttendanceStats();
+      // Refresh today's status
+      await fetchTodayStatus();
 
       _isCheckingIn = false;
       notifyListeners();
@@ -128,6 +101,38 @@ class AttendanceProvider extends ChangeNotifier {
     } catch (e) {
       _errorMessage = e.toString();
       _isCheckingIn = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> checkOut() async {
+    _isCheckingOut = true;
+    _errorMessage = null;
+    _successMessage = null;
+    notifyListeners();
+
+    try {
+      final resp = await _dio.post<Map<String, dynamic>>(
+        '/api/attendance/check-out',
+      );
+      _successMessage =
+          resp.data!['message'] as String? ?? 'Checked out successfully!';
+
+      // Refresh today's status
+      await fetchTodayStatus();
+
+      _isCheckingOut = false;
+      notifyListeners();
+      return true;
+    } on DioException catch (e) {
+      _errorMessage = ApiException.fromDioException(e);
+      _isCheckingOut = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isCheckingOut = false;
       notifyListeners();
       return false;
     }

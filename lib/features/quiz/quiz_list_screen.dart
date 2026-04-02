@@ -113,9 +113,10 @@ class _QuizListScreenState extends State<QuizListScreen>
           SliverToBoxAdapter(
             child: Column(
               children: [
-                // Tab Bar
                 Container(
-                  color: AppColors.primary,
+                  decoration: const BoxDecoration(
+                    gradient: AppColors.primaryGradient,
+                  ),
                   child: TabBar(
                     controller: _tabController,
                     indicatorColor: Colors.white,
