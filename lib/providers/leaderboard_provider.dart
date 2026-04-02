@@ -2,8 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../models/leaderboard_model.dart';
 import '../services/api_service.dart';
+import '../core/utils/app_logger.dart';
 
 class LeaderboardProvider extends ChangeNotifier {
+  static const _tag = 'LeaderboardProvider';
+
   final Dio _dio = ApiClient.instance.dio;
 
   bool _isLoading = false;
@@ -19,6 +22,7 @@ class LeaderboardProvider extends ChangeNotifier {
   LeaderboardPeriod get currentPeriod => _currentPeriod;
 
   Future<void> fetchLeaderboard(LeaderboardPeriod period) async {
+    AppLogger.info(_tag, 'fetchLeaderboard called');
     _isLoading = true;
     _errorMessage = null;
     _currentPeriod = period;
@@ -35,14 +39,17 @@ class LeaderboardProvider extends ChangeNotifier {
       final leaderboardData = LeaderboardResponse.fromJson(responseData);
       _entries = leaderboardData.entries;
       _currentUserEntry = leaderboardData.currentUserEntry;
+      AppLogger.success(_tag, 'fetchLeaderboard succeeded');
     } on DioException catch (e) {
       _errorMessage = ApiException.fromDioException(e);
       _entries = [];
       _currentUserEntry = null;
+      AppLogger.error(_tag, 'fetchLeaderboard DioException', e);
     } catch (e) {
       _errorMessage = e.toString();
       _entries = [];
       _currentUserEntry = null;
+      AppLogger.error(_tag, 'fetchLeaderboard error', e);
     }
 
     _isLoading = false;
@@ -65,6 +72,7 @@ class LeaderboardProvider extends ChangeNotifier {
   }
 
   void clearError() {
+    AppLogger.info(_tag, 'clearError called');
     _errorMessage = null;
     notifyListeners();
   }

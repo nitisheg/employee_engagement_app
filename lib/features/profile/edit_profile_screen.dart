@@ -334,7 +334,108 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ],
                     ),
                   ).animate().fadeIn(delay: 100.ms).slideY(begin: -0.1, end: 0),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 20),
+
+                  // Account Info (read-only)
+                  if (authProvider.user != null) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.15),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.email_outlined, size: 16, color: AppColors.primary),
+                              const SizedBox(width: 10),
+                              Text(
+                                'Email',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                authProvider.user!.email,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(Icons.verified_user_outlined, size: 16, color: AppColors.primary),
+                              const SizedBox(width: 10),
+                              Text(
+                                'Status',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              const Spacer(),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: authProvider.user!.status == 'active'
+                                      ? AppColors.success.withValues(alpha: 0.12)
+                                      : AppColors.warning.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  authProvider.user!.status[0].toUpperCase() +
+                                      authProvider.user!.status.substring(1),
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: authProvider.user!.status == 'active'
+                                        ? AppColors.success
+                                        : AppColors.warning,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (authProvider.user!.lastCheckInDate != null) ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const Icon(Icons.event_available_outlined, size: 16, color: AppColors.primary),
+                                const SizedBox(width: 10),
+                                Text(
+                                  'Last Check-In',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                                const Spacer(),
+                                Text(
+                                  authProvider.user!.lastCheckInDate!,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
 
                   // Personal Information Section
                   Text(

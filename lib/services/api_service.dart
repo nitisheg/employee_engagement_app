@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
+import '../core/utils/app_logger.dart';
 
 // ── Singleton API client ──────────────────────────────────────────────────────
 
@@ -36,9 +37,24 @@ class ApiClient {
     dio.interceptors.add(CookieManager(_cookieJar));
     dio.interceptors.add(
       InterceptorsWrapper(
+        onRequest: (options, handler) {
+          AppLogger.network('ApiClient', '→ ${options.method} ${options.path}');
+          handler.next(options);
+        },
         onResponse: (response, handler) {
+          AppLogger.network(
+            'ApiClient',
+            '← ${response.statusCode} ${response.requestOptions.path}',
+          );
           response.data = _unwrapResponse(response.data);
           handler.next(response);
+        },
+        onError: (err, handler) {
+          AppLogger.error(
+            'ApiClient',
+            '✗ ${err.requestOptions.method} ${err.requestOptions.path} — ${err.response?.statusCode} ${err.message}',
+          );
+          handler.next(err);
         },
       ),
     );
@@ -73,6 +89,9 @@ class _AuthInterceptor extends Interceptor {
     final token = await _storage.read(key: _tokenKey);
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
+      AppLogger.debug('AuthInterceptor', 'Token injected for ${options.path}');
+    } else {
+      AppLogger.debug('AuthInterceptor', 'No token for ${options.path}');
     }
     handler.next(options);
   }
@@ -80,6 +99,10 @@ class _AuthInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     if (err.response?.statusCode == 401 && !_isRefreshing) {
+      AppLogger.warning(
+        'AuthInterceptor',
+        '401 received — attempting token refresh',
+      );
       _isRefreshing = true;
       try {
         final refreshDio = Dio(BaseOptions(baseUrl: ApiClient.baseUrl));
@@ -88,6 +111,10 @@ class _AuthInterceptor extends Interceptor {
         final newToken = resp.data['accessToken'] as String?;
         if (newToken != null) {
           await _storage.write(key: _tokenKey, value: newToken);
+          AppLogger.success(
+            'AuthInterceptor',
+            'Token refreshed — retrying ${err.requestOptions.path}',
+          );
           final opts = err.requestOptions;
           opts.headers['Authorization'] = 'Bearer $newToken';
           final retried = await _dio.request<dynamic>(
@@ -99,7 +126,12 @@ class _AuthInterceptor extends Interceptor {
           handler.resolve(retried);
           return;
         }
-      } catch (_) {
+      } catch (e) {
+        AppLogger.error(
+          'AuthInterceptor',
+          'Token refresh failed — clearing token',
+          e,
+        );
         await _storage.delete(key: _tokenKey);
       } finally {
         _isRefreshing = false;
@@ -115,12 +147,14 @@ class AuthApiService {
   final Dio _dio = ApiClient.instance.dio;
 
   Future<Map<String, dynamic>> login(String email, String password) async {
+    AppLogger.info('AuthApiService', 'Login → $email');
     final resp = await _dio.post<Map<String, dynamic>>(
       '/api/auth/user/login',
       data: {'email': email, 'password': password},
     );
     final accessToken = resp.data!['accessToken'] as String;
     await ApiClient.instance.saveToken(accessToken);
+    AppLogger.success('AuthApiService', 'Login successful — token saved');
     return resp.data!;
   }
 
@@ -131,6 +165,7 @@ class AuthApiService {
     required String employeeId,
     required String department,
   }) async {
+    AppLogger.info('AuthApiService', 'Register → $email ($employeeId)');
     final resp = await _dio.post<Map<String, dynamic>>(
       '/api/auth/user/register',
       data: {
@@ -143,18 +178,22 @@ class AuthApiService {
     );
     // Register returns {success, message, user} — no accessToken.
     // The user must log in separately after registration.
+    AppLogger.success('AuthApiService', 'Registration successful');
     return resp.data!;
   }
 
   Future<void> logout() async {
+    AppLogger.info('AuthApiService', 'Logout');
     try {
       await _dio.post<dynamic>('/api/auth/user/logout');
     } finally {
       await ApiClient.instance.clearToken();
+      AppLogger.success('AuthApiService', 'Token cleared');
     }
   }
 
   Future<void> forgotPassword(String email) async {
+    AppLogger.info('AuthApiService', 'Forgot password → $email');
     await _dio.post<dynamic>(
       '/api/auth/user/forgot-password',
       data: {'email': email},
@@ -165,6 +204,7 @@ class AuthApiService {
     required String token,
     required String newPassword,
   }) async {
+    AppLogger.info('AuthApiService', 'Reset password');
     await _dio.post<dynamic>(
       '/api/auth/user/reset-password',
       data: {'token': token, 'newPassword': newPassword},
@@ -178,24 +218,37 @@ class ProfileApiService {
   final Dio _dio = ApiClient.instance.dio;
 
   Future<Map<String, dynamic>> getProfile() async {
+    AppLogger.info('ProfileApiService', 'Fetching profile');
     final resp = await _dio.get<Map<String, dynamic>>('/api/user/me');
+    AppLogger.success('ProfileApiService', 'Profile fetched');
     return resp.data!;
   }
 
   Future<Map<String, dynamic>> getDashboard() async {
+    AppLogger.info('ProfileApiService', 'Fetching dashboard');
     final resp = await _dio.get<Map<String, dynamic>>('/api/user/dashboard');
+    AppLogger.success('ProfileApiService', 'Dashboard fetched');
     return resp.data!;
   }
 
   Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> data) async {
+    AppLogger.info(
+      'ProfileApiService',
+      'Updating profile → ${data.keys.join(', ')}',
+    );
     final resp = await _dio.put<Map<String, dynamic>>(
       '/api/user/me',
       data: data,
     );
+    AppLogger.success('ProfileApiService', 'Profile updated');
     return resp.data!;
   }
 
   Future<Map<String, dynamic>> uploadAvatar(String filePath) async {
+    AppLogger.info(
+      'ProfileApiService',
+      'Uploading avatar → ${filePath.split('/').last}',
+    );
     final formData = FormData.fromMap({
       'avatar': await MultipartFile.fromFile(
         filePath,
@@ -206,6 +259,7 @@ class ProfileApiService {
       '/api/user/avatar',
       data: formData,
     );
+    AppLogger.success('ProfileApiService', 'Avatar uploaded');
     return resp.data!;
   }
 
@@ -213,10 +267,12 @@ class ProfileApiService {
     required String currentPassword,
     required String newPassword,
   }) async {
+    AppLogger.info('ProfileApiService', 'Changing password');
     await _dio.put<dynamic>(
       '/api/user/change-password',
       data: {'currentPassword': currentPassword, 'newPassword': newPassword},
     );
+    AppLogger.success('ProfileApiService', 'Password changed');
   }
 }
 
@@ -225,12 +281,16 @@ class ProfileApiService {
 class QuizApiService {
   final Dio _dio = ApiClient.instance.dio;
 
-  Future<List<dynamic>> getActiveQuizzes({String filter = 'all'}) async {
+  Future<Map<String, dynamic>> getActiveQuizzes({
+    String filter = 'all',
+    int page = 1,
+    int limit = 20,
+  }) async {
     final resp = await _dio.get<Map<String, dynamic>>(
       '/api/quizzes/active',
-      queryParameters: {'filter': filter},
+      queryParameters: {'filter': filter, 'page': page, 'limit': limit},
     );
-    return resp.data!['quizzes'] as List<dynamic>? ?? [];
+    return resp.data!;
   }
 
   Future<Map<String, dynamic>> getQuizAttempt(
@@ -249,9 +309,18 @@ class QuizApiService {
 
     final raw = resp.data!;
 
-    // Support payloads like {data: { ... }}
+    // Support payloads like {data: {...}, pagination: {...}}
     if (raw.containsKey('data') && raw['data'] is Map<String, dynamic>) {
-      return raw['data'] as Map<String, dynamic>;
+      final dataPayload = Map<String, dynamic>.from(
+        raw['data'] as Map<String, dynamic>,
+      );
+
+      final rootPagination = raw['pagination'] as Map<String, dynamic>?;
+      if (rootPagination != null && !dataPayload.containsKey('pagination')) {
+        dataPayload['pagination'] = rootPagination;
+      }
+
+      return dataPayload;
     }
 
     // Support payload like the example you provided:
@@ -283,11 +352,15 @@ class QuizApiService {
     return resp.data!;
   }
 
-  Future<List<dynamic>> getMyResults() async {
+  Future<Map<String, dynamic>> getMyResults({
+    int page = 1,
+    int limit = 20,
+  }) async {
     final resp = await _dio.get<Map<String, dynamic>>(
       '/api/quizzes/my-results',
+      queryParameters: {'page': page, 'limit': limit},
     );
-    return resp.data!['results'] as List<dynamic>? ?? [];
+    return resp.data!;
   }
 }
 

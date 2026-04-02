@@ -105,6 +105,10 @@ class QuizAttemptData {
   final int page;
   final int totalPages;
   final int totalQuestions;
+  final int limit;
+  final bool hasNextPage;
+  final bool hasPrevPage;
+  final bool alreadySubmitted;
 
   const QuizAttemptData({
     required this.quizId,
@@ -113,15 +117,35 @@ class QuizAttemptData {
     required this.page,
     required this.totalPages,
     required this.totalQuestions,
+    this.limit = 20,
+    this.hasNextPage = false,
+    this.hasPrevPage = false,
+    this.alreadySubmitted = false,
   });
 
   factory QuizAttemptData.fromJson(Map<String, dynamic> json) {
     final quizSection = json['quiz'] as Map<String, dynamic>?;
     final safeJson = quizSection ?? json;
+    final pagination = json['pagination'] as Map<String, dynamic>?;
 
     final questionList = (safeJson['questions'] as List? ?? [])
         .map((q) => QuizAttemptQuestion.fromJson(q as Map<String, dynamic>))
         .toList();
+
+    final currentPage =
+        (json['page'] ??
+                pagination?['page'] ??
+                pagination?['currentPage'] ??
+                pagination?['current_page'] ??
+                1)
+            as int;
+
+    final resolvedTotalPages =
+        (json['totalPages'] ??
+                pagination?['totalPages'] ??
+                pagination?['total_pages'] ??
+                1)
+            as int;
 
     return QuizAttemptData(
       quizId:
@@ -129,12 +153,26 @@ class QuizAttemptData {
               as String,
       title: (safeJson['title'] ?? '') as String,
       questions: questionList,
-      page: (json['page'] ?? json['pagination']?['page'] ?? 1) as int,
-      totalPages:
-          (json['totalPages'] ?? json['pagination']?['totalPages'] ?? 1) as int,
+      page: currentPage,
+      totalPages: resolvedTotalPages,
       totalQuestions:
-          (json['total'] ?? json['pagination']?['total'] ?? questionList.length)
+          (json['total'] ??
+                  pagination?['total'] ??
+                  pagination?['totalItems'] ??
+                  pagination?['total_items'] ??
+                  questionList.length)
               as int,
+      limit:
+          (pagination?['limit'] ?? json['limit'] ?? questionList.length) as int,
+      hasNextPage:
+          pagination?['hasNextPage'] as bool? ??
+          (pagination != null ? currentPage < resolvedTotalPages : false),
+      hasPrevPage:
+          pagination?['hasPrevPage'] as bool? ??
+          (pagination != null ? currentPage > 1 : false),
+      alreadySubmitted:
+          (json['alreadySubmitted'] ?? json['already_submitted'] ?? false)
+              as bool,
     );
   }
 }

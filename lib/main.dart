@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'core/utils/app_logger.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/app_colors.dart';
@@ -19,14 +20,18 @@ import 'providers/attendance_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  AppLogger.info('App', 'Starting EngageHub');
+
   final authProvider = AuthProvider();
+  AppLogger.info('App', 'Restoring session');
   await authProvider.init();
 
   // Check if onboarding is completed
   final storage = FlutterSecureStorage();
-
   String? value = await storage.read(key: 'onboarding_completed');
   final onboardingCompleted = value == 'true';
+  AppLogger.info('App', 'Onboarding completed: $onboardingCompleted');
+  AppLogger.info('App', 'Auth status: ${authProvider.status}');
 
   runApp(
     EmployeeEngagementApp(

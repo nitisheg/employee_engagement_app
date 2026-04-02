@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
+import '../core/utils/app_logger.dart';
 import 'base_view_model.dart';
 
 class MainNavViewModel extends BaseViewModel {
+  static const _tag = 'MainNavViewModel';
+
   int _selectedIndex = 0;
   final PageController _pageController = PageController();
 
@@ -10,6 +13,7 @@ class MainNavViewModel extends BaseViewModel {
   PageController get pageController => _pageController;
 
   void onTabTapped(int index) {
+    AppLogger.info(_tag, 'onTabTapped called');
     _selectedIndex = index;
     _pageController.animateToPage(
       index,
@@ -20,6 +24,7 @@ class MainNavViewModel extends BaseViewModel {
   }
 
   void onPageChanged(int index) {
+    AppLogger.info(_tag, 'onPageChanged called');
     _selectedIndex = index;
     notifyListeners();
   }

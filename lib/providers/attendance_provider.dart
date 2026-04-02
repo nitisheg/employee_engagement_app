@@ -2,8 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../models/attendance_model.dart';
 import '../services/api_service.dart';
+import '../core/utils/app_logger.dart';
 
 class AttendanceProvider extends ChangeNotifier {
+  static const _tag = 'AttendanceProvider';
+
   final Dio _dio = ApiClient.instance.dio;
 
   bool _isLoading = false;
@@ -29,6 +32,7 @@ class AttendanceProvider extends ChangeNotifier {
   String? get streakWarning => _todayStatus?.streak.warning;
 
   Future<void> fetchTodayStatus() async {
+    AppLogger.info(_tag, 'fetchTodayStatus called');
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -38,12 +42,15 @@ class AttendanceProvider extends ChangeNotifier {
         '/api/attendance/today',
       );
       _todayStatus = AttendanceTodayStatus.fromJson(resp.data!);
+      AppLogger.success(_tag, 'fetchTodayStatus succeeded');
     } on DioException catch (e) {
       _errorMessage = ApiException.fromDioException(e);
       _todayStatus = null;
+      AppLogger.error(_tag, 'fetchTodayStatus DioException', e);
     } catch (e) {
       _errorMessage = e.toString();
       _todayStatus = null;
+      AppLogger.error(_tag, 'fetchTodayStatus error', e);
     }
 
     _isLoading = false;
@@ -51,6 +58,7 @@ class AttendanceProvider extends ChangeNotifier {
   }
 
   Future<void> fetchAttendanceHistory({String? month}) async {
+    AppLogger.info(_tag, 'fetchAttendanceHistory called');
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -62,12 +70,15 @@ class AttendanceProvider extends ChangeNotifier {
         queryParameters: queryParams,
       );
       _attendanceHistory = AttendanceHistory.fromJson(resp.data!);
+      AppLogger.success(_tag, 'fetchAttendanceHistory succeeded');
     } on DioException catch (e) {
       _errorMessage = ApiException.fromDioException(e);
       _attendanceHistory = null;
+      AppLogger.error(_tag, 'fetchAttendanceHistory DioException', e);
     } catch (e) {
       _errorMessage = e.toString();
       _attendanceHistory = null;
+      AppLogger.error(_tag, 'fetchAttendanceHistory error', e);
     }
 
     _isLoading = false;
@@ -75,6 +86,7 @@ class AttendanceProvider extends ChangeNotifier {
   }
 
   Future<bool> checkIn() async {
+    AppLogger.info(_tag, 'checkIn called');
     _isCheckingIn = true;
     _errorMessage = null;
     _successMessage = null;
@@ -90,16 +102,19 @@ class AttendanceProvider extends ChangeNotifier {
       // Refresh today's status
       await fetchTodayStatus();
 
+      AppLogger.success(_tag, 'checkIn succeeded');
       _isCheckingIn = false;
       notifyListeners();
       return true;
     } on DioException catch (e) {
       _errorMessage = ApiException.fromDioException(e);
+      AppLogger.error(_tag, 'checkIn DioException', e);
       _isCheckingIn = false;
       notifyListeners();
       return false;
     } catch (e) {
       _errorMessage = e.toString();
+      AppLogger.error(_tag, 'checkIn error', e);
       _isCheckingIn = false;
       notifyListeners();
       return false;
@@ -107,6 +122,7 @@ class AttendanceProvider extends ChangeNotifier {
   }
 
   Future<bool> checkOut() async {
+    AppLogger.info(_tag, 'checkOut called');
     _isCheckingOut = true;
     _errorMessage = null;
     _successMessage = null;
@@ -122,16 +138,19 @@ class AttendanceProvider extends ChangeNotifier {
       // Refresh today's status
       await fetchTodayStatus();
 
+      AppLogger.success(_tag, 'checkOut succeeded');
       _isCheckingOut = false;
       notifyListeners();
       return true;
     } on DioException catch (e) {
       _errorMessage = ApiException.fromDioException(e);
+      AppLogger.error(_tag, 'checkOut DioException', e);
       _isCheckingOut = false;
       notifyListeners();
       return false;
     } catch (e) {
       _errorMessage = e.toString();
+      AppLogger.error(_tag, 'checkOut error', e);
       _isCheckingOut = false;
       notifyListeners();
       return false;
@@ -139,6 +158,7 @@ class AttendanceProvider extends ChangeNotifier {
   }
 
   void clearMessages() {
+    AppLogger.info(_tag, 'clearMessages called');
     _errorMessage = null;
     _successMessage = null;
     notifyListeners();

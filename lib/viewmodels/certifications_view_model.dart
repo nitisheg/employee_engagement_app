@@ -1,4 +1,5 @@
 import '../models/certification_model.dart';
+import '../core/utils/app_logger.dart';
 import 'base_view_model.dart';
 
 // Placeholder for CertificationsApiService - to be implemented
@@ -36,6 +37,8 @@ class CertificationsApiService {
 }
 
 class CertificationsViewModel extends BaseViewModel {
+  static const _tag = 'CertificationsViewModel';
+
   List<CertificationModel> _availableCertifications = [];
   List<Map<String, dynamic>> _userCertifications = [];
   List<Map<String, dynamic>> _certificationProgress = [];
@@ -47,6 +50,7 @@ class CertificationsViewModel extends BaseViewModel {
       _certificationProgress;
 
   Future<void> loadAvailableCertifications({String? category}) async {
+    AppLogger.info(_tag, 'loadAvailableCertifications called');
     try {
       setLoading();
       final data = await CertificationsApiService().getAvailableCertifications(
@@ -55,48 +59,60 @@ class CertificationsViewModel extends BaseViewModel {
       _availableCertifications = (data as List)
           .map((json) => CertificationModel.fromJson(json))
           .toList();
+      AppLogger.success(_tag, 'loadAvailableCertifications succeeded');
       setSuccess();
     } catch (e) {
+      AppLogger.error(_tag, 'loadAvailableCertifications error', e);
       setError(e.toString());
     }
   }
 
   Future<void> loadUserCertifications() async {
+    AppLogger.info(_tag, 'loadUserCertifications called');
     try {
       setLoading();
       final data = await CertificationsApiService().getUserCertifications();
       _userCertifications = List<Map<String, dynamic>>.from(data);
+      AppLogger.success(_tag, 'loadUserCertifications succeeded');
       setSuccess();
     } catch (e) {
+      AppLogger.error(_tag, 'loadUserCertifications error', e);
       setError(e.toString());
     }
   }
 
   Future<void> loadCertificationProgress() async {
+    AppLogger.info(_tag, 'loadCertificationProgress called');
     try {
       setLoading();
       final data = await CertificationsApiService().getCertificationProgress();
       _certificationProgress = List<Map<String, dynamic>>.from(data);
+      AppLogger.success(_tag, 'loadCertificationProgress succeeded');
       setSuccess();
     } catch (e) {
+      AppLogger.error(_tag, 'loadCertificationProgress error', e);
       setError(e.toString());
     }
   }
 
   Future<void> enrollInCertification(String certificationId) async {
+    AppLogger.info(_tag, 'enrollInCertification called');
     try {
       setLoading();
       await CertificationsApiService().enrollInCertification(certificationId);
       // Refresh user certifications after enrollment
       await loadUserCertifications();
       await loadCertificationProgress();
+      AppLogger.success(_tag, 'enrollInCertification succeeded');
       setSuccess();
     } catch (e) {
+      AppLogger.error(_tag, 'enrollInCertification error', e);
       setError(e.toString());
     }
   }
 
   Future<void> startCertificationAttempt(String certificationId) async {
+    AppLogger.info(_tag, 'startCertificationAttempt called');
     try {
       setLoading();
       await CertificationsApiService().startCertificationAttempt(
@@ -104,8 +120,10 @@ class CertificationsViewModel extends BaseViewModel {
       );
       // Refresh progress after starting attempt
       await loadCertificationProgress();
+      AppLogger.success(_tag, 'startCertificationAttempt succeeded');
       setSuccess();
     } catch (e) {
+      AppLogger.error(_tag, 'startCertificationAttempt error', e);
       setError(e.toString());
     }
   }
@@ -114,6 +132,7 @@ class CertificationsViewModel extends BaseViewModel {
     String attemptId,
     Map<String, dynamic> answers,
   ) async {
+    AppLogger.info(_tag, 'submitCertificationAttempt called');
     try {
       setLoading();
       await CertificationsApiService().submitCertificationAttempt(
@@ -123,13 +142,16 @@ class CertificationsViewModel extends BaseViewModel {
       // Refresh certifications and progress after submission
       await loadUserCertifications();
       await loadCertificationProgress();
+      AppLogger.success(_tag, 'submitCertificationAttempt succeeded');
       setSuccess();
     } catch (e) {
+      AppLogger.error(_tag, 'submitCertificationAttempt error', e);
       setError(e.toString());
     }
   }
 
   Future<void> refreshCertificationsData() async {
+    AppLogger.info(_tag, 'refreshCertificationsData called');
     await Future.wait([
       loadAvailableCertifications(),
       loadUserCertifications(),

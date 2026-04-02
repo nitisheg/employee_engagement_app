@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../core/utils/app_logger.dart';
 
 enum ViewState { idle, loading, success, error }
 
@@ -12,9 +13,22 @@ abstract class BaseViewModel extends ChangeNotifier {
   bool get isSuccess => _state == ViewState.success;
   bool get hasError => _state == ViewState.error;
 
+  /// Name used in log output — override in subclasses for clearer tags.
+  String get logTag => runtimeType.toString();
+
   void setState(ViewState newState, {String? error}) {
     _state = newState;
     _error = error;
+    switch (newState) {
+      case ViewState.loading:
+        AppLogger.info(logTag, 'Loading…');
+      case ViewState.success:
+        AppLogger.success(logTag, 'Success');
+      case ViewState.error:
+        AppLogger.error(logTag, 'Error: $error');
+      case ViewState.idle:
+        break;
+    }
     notifyListeners();
   }
 

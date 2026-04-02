@@ -11,6 +11,7 @@ class UserModel {
   final String? avatar;
   final String? joiningDate;
   final String status;
+  final String? lastCheckInDate;
   // Display-only fields (not from API, kept with defaults for UI)
   final int totalPoints;
   final int rank;
@@ -36,6 +37,7 @@ class UserModel {
     this.avatar,
     this.joiningDate,
     this.status = 'active',
+    this.lastCheckInDate,
     this.totalPoints = 0,
     this.rank = 0,
     this.currentStreak = 0,
@@ -71,6 +73,7 @@ class UserModel {
       avatar: json['avatar'] as String?,
       joiningDate: (json['joining_date'] ?? json['joiningDate']) as String?,
       status: (json['status'] ?? 'active') as String,
+      lastCheckInDate: json['lastCheckInDate'] as String?,
       totalPoints: (json['total_points'] ?? json['totalPoints'] ?? 0) as int,
       rank: (json['rank'] ?? 0) as int,
       currentStreak:
@@ -97,6 +100,7 @@ class UserModel {
     if (avatar != null) 'avatar': avatar,
     if (joiningDate != null) 'joiningDate': joiningDate,
     'status': status,
+    if (lastCheckInDate != null) 'lastCheckInDate': lastCheckInDate,
     'total_points': totalPoints,
     'rank': rank,
     'currentStreak': currentStreak,
@@ -112,6 +116,7 @@ class UserModel {
     String? designation,
     String? avatar,
     String? joiningDate,
+    String? lastCheckInDate,
     int? totalPoints,
     int? rank,
     int? currentStreak,
@@ -134,6 +139,7 @@ class UserModel {
       avatar: avatar ?? this.avatar,
       joiningDate: joiningDate ?? this.joiningDate,
       status: status,
+      lastCheckInDate: lastCheckInDate ?? this.lastCheckInDate,
       totalPoints: totalPoints ?? this.totalPoints,
       rank: rank ?? this.rank,
       currentStreak: currentStreak ?? this.currentStreak,

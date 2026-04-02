@@ -15,12 +15,31 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     Future.microtask(() {
-      context.read<NotificationProvider>().fetchNotifications();
+      context.read<NotificationProvider>().fetchNotifications(refresh: true);
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.position.pixels;
+    if (currentScroll >= (maxScroll - 200)) {
+      context.read<NotificationProvider>().loadMoreNotifications();
+    }
   }
 
   @override
@@ -107,11 +126,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           }
 
           return RefreshIndicator(
-            onRefresh: () => provider.fetchNotifications(),
+            onRefresh: () => provider.fetchNotifications(refresh: true),
             child: ListView.builder(
+              controller: _scrollController,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              itemCount: provider.notifications.length,
+              itemCount:
+                  provider.notifications.length +
+                  (provider.isLoadingMore ? 1 : 0),
               itemBuilder: (context, index) {
+                if (index >= provider.notifications.length) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+
                 final notification = provider.notifications[index];
                 return _NotificationCard(
                       notification: notification,

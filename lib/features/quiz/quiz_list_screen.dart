@@ -45,7 +45,10 @@ class _QuizListScreenState extends State<QuizListScreen>
 
   void _fetchQuizzesForTab(int index) {
     final filters = ['all', 'live', 'upcoming'];
-    context.read<QuizProvider>().fetchActiveQuizzes(filter: filters[index]);
+    context.read<QuizProvider>().fetchActiveQuizzes(
+      filter: filters[index],
+      refresh: true,
+    );
   }
 
   @override
@@ -219,22 +222,41 @@ class _QuizListScreenState extends State<QuizListScreen>
           );
         }
 
-        return Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: (MediaQuery.of(context).size.width * 0.042).clamp(
-              12.0,
-              24.0,
-            ),
-            vertical: 16,
-          ),
-          child: SafeArea(
-            top: false,
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ...quizzes.map((quiz) => _QuizCard(quiz: quiz)).toList(),
-                ],
+        return RefreshIndicator(
+          onRefresh: () =>
+              provider.fetchActiveQuizzes(filter: filter, refresh: true),
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (notification) {
+              if (notification.metrics.pixels >=
+                  notification.metrics.maxScrollExtent - 200) {
+                provider.loadMoreActiveQuizzes();
+              }
+              return false;
+            },
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: (MediaQuery.of(context).size.width * 0.042).clamp(
+                  12.0,
+                  24.0,
+                ),
+                vertical: 16,
+              ),
+              child: SafeArea(
+                top: false,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ...quizzes.map((quiz) => _QuizCard(quiz: quiz)).toList(),
+                      if (provider.loadingMoreQuizzes)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),

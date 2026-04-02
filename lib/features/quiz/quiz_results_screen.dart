@@ -15,12 +15,31 @@ class QuizResultsScreen extends StatefulWidget {
 }
 
 class _QuizResultsScreenState extends State<QuizResultsScreen> {
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<QuizProvider>().fetchMyResults();
+      context.read<QuizProvider>().fetchMyResults(refresh: true);
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.position.pixels;
+    if (currentScroll >= (maxScroll - 200)) {
+      context.read<QuizProvider>().loadMoreMyResults();
+    }
   }
 
   @override
@@ -64,7 +83,7 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: () => provider.fetchMyResults(),
+                      onPressed: () => provider.fetchMyResults(refresh: true),
                       child: const Text('Retry'),
                     ),
                   ],
@@ -109,16 +128,27 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
             );
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: results.length,
-            itemBuilder: (context, index) {
-              final result = results[index];
-              return _ResultCard(result: result)
-                  .animate()
-                  .fadeIn(delay: (index * 50).ms)
-                  .slideY(begin: 0.1, end: 0);
-            },
+          return RefreshIndicator(
+            onRefresh: () => provider.fetchMyResults(refresh: true),
+            child: ListView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.all(16),
+              itemCount: results.length + (provider.loadingMoreResults ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index >= results.length) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+
+                final result = results[index];
+                return _ResultCard(result: result)
+                    .animate()
+                    .fadeIn(delay: (index * 50).ms)
+                    .slideY(begin: 0.1, end: 0);
+              },
+            ),
           );
         },
       ),
