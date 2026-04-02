@@ -169,10 +169,12 @@ class HomeScreen extends StatelessWidget {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => const NotificationsScreen(),
+                                        builder: (_) =>
+                                            const NotificationsScreen(),
                                       ),
                                     );
-                                  },                                ),
+                                  },
+                                ),
                                 Positioned(
                                   right: 10,
                                   top: 10,
@@ -260,7 +262,6 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   SectionHeader(
                     title: 'Quick Actions',
-                    // actionLabel: 'See All',
                     onAction: () {},
                   ).animate().fadeIn(delay: 100.ms),
                   const SizedBox(height: 12),

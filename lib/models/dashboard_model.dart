@@ -1,5 +1,4 @@
 import 'package:employee_engagement_app/models/quiz_model.dart';
-import 'package:employee_engagement_app/models/user_model.dart';
 
 class DashboardModel {
   final DashboardUser user;

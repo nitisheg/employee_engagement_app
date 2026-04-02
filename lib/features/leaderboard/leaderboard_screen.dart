@@ -229,6 +229,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             child: TabBarView(
               controller: _tabController,
               children: [
+                _LeaderboardList(employees: _thisMonth, userRank: 1),
                 _LeaderboardList(employees: _thisMonth, userRank: 4),
                 _LeaderboardList(
                   employees: _thisMonth.reversed.toList(),

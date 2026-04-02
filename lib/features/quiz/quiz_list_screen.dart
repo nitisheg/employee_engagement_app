@@ -131,9 +131,7 @@ class _QuizListScreenState extends State<QuizListScreen>
                 ),
                 // Tab Bar View
                 SizedBox(
-                  height:
-                      MediaQuery.of(context).size.height -
-                      200, // Adjust height as needed
+                  height: MediaQuery.of(context).size.height - 200,
                   child: TabBarView(
                     controller: _tabController,
                     children: [
@@ -394,7 +392,7 @@ class _QuizCard extends StatelessWidget {
                       const SizedBox(width: 8),
                       _InfoChip(
                         icon: Icons.stars_rounded,
-                        text: '${quiz.pointsPerQuestion} pts/Q',
+                        text: '${quiz.totalPoints} pts',
                       ),
                       if (isCompleted) ...[
                         const Spacer(),

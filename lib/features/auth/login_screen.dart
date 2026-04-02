@@ -50,9 +50,10 @@ class _LoginScreenState extends State<LoginScreen> {
   void _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
-    final success = await context
-        .read<AuthProvider>()
-        .login(_emailController.text.trim(), _passwordController.text);
+    final success = await context.read<AuthProvider>().login(
+      _emailController.text.trim(),
+      _passwordController.text,
+    );
     if (!mounted) return;
     setState(() => _isLoading = false);
     if (success) {
@@ -79,8 +80,10 @@ class _LoginScreenState extends State<LoginScreen> {
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Reset Password',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
+        title: Text(
+          'Reset Password',
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+        ),
         content: Form(
           key: forgotFormKey,
           child: TextFormField(
@@ -89,8 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
             decoration: const InputDecoration(
               labelText: 'Work Email',
               hintText: 'you@eglogics.com',
-              prefixIcon:
-                  Icon(Icons.email_outlined, color: AppColors.primary),
+              prefixIcon: Icon(Icons.email_outlined, color: AppColors.primary),
             ),
             validator: _validateEmail,
           ),
@@ -98,17 +100,18 @@ class _LoginScreenState extends State<LoginScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel',
-                style:
-                    GoogleFonts.poppins(color: AppColors.textSecondary)),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.poppins(color: AppColors.textSecondary),
+            ),
           ),
           ElevatedButton(
             onPressed: () async {
               if (!forgotFormKey.currentState!.validate()) return;
               Navigator.pop(context);
-              final ok = await context
-                  .read<AuthProvider>()
-                  .forgotPassword(ctrl.text.trim());
+              final ok = await context.read<AuthProvider>().forgotPassword(
+                ctrl.text.trim(),
+              );
               if (!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -116,7 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ok
                         ? 'If that email exists, a reset link has been sent.'
                         : context.read<AuthProvider>().errorMessage ??
-                            'Something went wrong.',
+                              'Something went wrong.',
                     style: GoogleFonts.poppins(),
                   ),
                   backgroundColor: ok ? AppColors.success : Colors.redAccent,
@@ -126,11 +129,16 @@ class _LoginScreenState extends State<LoginScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
-            child: Text('Send Link',
-                style: GoogleFonts.poppins(
-                    color: Colors.white, fontWeight: FontWeight.w600)),
+            child: Text(
+              'Send Link',
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
@@ -170,28 +178,39 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: Colors.white.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.people_alt_rounded,
-                            size: 50, color: Colors.white),
+                        child: const Icon(
+                          Icons.people_alt_rounded,
+                          size: 50,
+                          color: Colors.white,
+                        ),
                       ).animate().scale(
-                          duration: 600.ms, curve: Curves.elasticOut),
+                        duration: 600.ms,
+                        curve: Curves.elasticOut,
+                      ),
                       const SizedBox(height: 16),
                       Text(
-                        'EngageHub',
-                        style: GoogleFonts.poppins(
-                          fontSize: (size.width * 0.085).clamp(24.0, 36.0),
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                          letterSpacing: 1.2,
-                        ),
-                      ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.3, end: 0),
+                            'EngageHub',
+                            style: GoogleFonts.poppins(
+                              fontSize: (size.width * 0.085).clamp(24.0, 36.0),
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: 1.2,
+                            ),
+                          )
+                          .animate()
+                          .fadeIn(delay: 200.ms)
+                          .slideY(begin: 0.3, end: 0),
                       const SizedBox(height: 6),
                       Text(
-                        'Employee Engagement Platform',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: Colors.white.withValues(alpha: 0.85),
-                        ),
-                      ).animate().fadeIn(delay: 350.ms).slideY(begin: 0.3, end: 0),
+                            'Employee Engagement Platform',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              color: Colors.white.withValues(alpha: 0.85),
+                            ),
+                          )
+                          .animate()
+                          .fadeIn(delay: 350.ms)
+                          .slideY(begin: 0.3, end: 0),
                     ],
                   ),
                 ),
@@ -208,59 +227,75 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     const SizedBox(height: 8),
                     Text(
-                      'Welcome Back! 👋',
-                      style: GoogleFonts.poppins(
-                        fontSize: (size.width * 0.069).clamp(20.0, 28.0),
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
-                    ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.2, end: 0),
+                          'Welcome Back! 👋',
+                          style: GoogleFonts.poppins(
+                            fontSize: (size.width * 0.069).clamp(20.0, 28.0),
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        )
+                        .animate()
+                        .fadeIn(delay: 400.ms)
+                        .slideY(begin: 0.2, end: 0),
                     const SizedBox(height: 4),
                     Text(
                       'Sign in with your @eglogics.com account',
                       style: GoogleFonts.poppins(
-                          fontSize: 13, color: AppColors.textSecondary),
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
                     ).animate().fadeIn(delay: 500.ms),
                     const SizedBox(height: 28),
 
                     // Email
                     TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      validator: _validateEmail,
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      decoration: const InputDecoration(
-                        labelText: 'Work Email',
-                        hintText: 'you@eglogics.com',
-                        prefixIcon: Icon(Icons.email_outlined,
-                            color: AppColors.primary),
-                      ),
-                    ).animate().fadeIn(delay: 550.ms).slideX(begin: -0.1, end: 0),
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: _validateEmail,
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                          decoration: const InputDecoration(
+                            labelText: 'Work Email',
+                            hintText: 'you@eglogics.com',
+                            prefixIcon: Icon(
+                              Icons.email_outlined,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        )
+                        .animate()
+                        .fadeIn(delay: 550.ms)
+                        .slideX(begin: -0.1, end: 0),
                     const SizedBox(height: 16),
 
                     // Password
                     TextFormField(
-                      controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      validator: _validatePassword,
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        hintText: '••••••••',
-                        prefixIcon: const Icon(Icons.lock_outline_rounded,
-                            color: AppColors.primary),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                            color: AppColors.textSecondary,
+                          controller: _passwordController,
+                          obscureText: _obscurePassword,
+                          validator: _validatePassword,
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                          decoration: InputDecoration(
+                            labelText: 'Password',
+                            hintText: '••••••••',
+                            prefixIcon: const Icon(
+                              Icons.lock_outline_rounded,
+                              color: AppColors.primary,
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                color: AppColors.textSecondary,
+                              ),
+                              onPressed: () => setState(
+                                () => _obscurePassword = !_obscurePassword,
+                              ),
+                            ),
                           ),
-                          onPressed: () => setState(
-                              () => _obscurePassword = !_obscurePassword),
-                        ),
-                      ),
-                    ).animate().fadeIn(delay: 600.ms).slideX(begin: -0.1, end: 0),
+                        )
+                        .animate()
+                        .fadeIn(delay: 600.ms)
+                        .slideX(begin: -0.1, end: 0),
                     const SizedBox(height: 12),
 
                     Align(
@@ -289,7 +324,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             child: const Center(
                               child: CircularProgressIndicator(
-                                  color: Colors.white, strokeWidth: 2.5),
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
                             ),
                           )
                         : GradientButton(
@@ -305,13 +342,16 @@ class _LoginScreenState extends State<LoginScreen> {
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (_) => const RegisterScreen()),
+                            builder: (_) => const RegisterScreen(),
+                          ),
                         ),
                         child: RichText(
                           text: TextSpan(
                             text: "Don't have an account? ",
                             style: GoogleFonts.poppins(
-                                color: AppColors.textSecondary, fontSize: 14),
+                              color: AppColors.textSecondary,
+                              fontSize: 14,
+                            ),
                             children: [
                               TextSpan(
                                 text: 'Register',

@@ -162,7 +162,9 @@ class _QuizScreenState extends State<QuizScreen>
     if (_currentIndex >= _questions.length - 1) {
       if (_apiMode && widget.quizId != null) {
         // Submit to API
-        final ok = await context.read<QuizProvider>().submitQuiz(widget.quizId!);
+        final ok = await context.read<QuizProvider>().submitQuiz(
+          widget.quizId!,
+        );
         if (mounted) {
           _apiResult = ok ? context.read<QuizProvider>().lastResult : null;
           if (_apiResult != null) {
@@ -196,7 +198,8 @@ class _QuizScreenState extends State<QuizScreen>
           : Colors.white;
     }
     final q = _questions[_currentIndex];
-    if (index == q.correctIndex) return AppColors.success.withValues(alpha: 0.15);
+    if (index == q.correctIndex)
+      return AppColors.success.withValues(alpha: 0.15);
     if (index == _selectedAnswer) return Colors.red.withValues(alpha: 0.12);
     return Colors.white;
   }
@@ -204,7 +207,9 @@ class _QuizScreenState extends State<QuizScreen>
   Color _optionBorderColor(int index) {
     if (!_answered) return Colors.grey.shade200;
     if (_apiMode) {
-      return index == _selectedAnswer ? AppColors.primary : Colors.grey.shade200;
+      return index == _selectedAnswer
+          ? AppColors.primary
+          : Colors.grey.shade200;
     }
     final q = _questions[_currentIndex];
     if (index == q.correctIndex) return AppColors.success;
@@ -244,10 +249,16 @@ class _QuizScreenState extends State<QuizScreen>
           title: Text(
             'Question ${_currentIndex + 1} of ${_questions.length}',
             style: GoogleFonts.poppins(
-                color: Colors.white, fontWeight: FontWeight.w600, fontSize: 16),
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+            ),
           ),
           flexibleSpace: Container(
-              decoration: const BoxDecoration(gradient: AppColors.primaryGradient)),
+            decoration: const BoxDecoration(
+              gradient: AppColors.primaryGradient,
+            ),
+          ),
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 16),
@@ -267,9 +278,12 @@ class _QuizScreenState extends State<QuizScreen>
                       borderRadius: BorderRadius.circular(4),
                       child: LinearProgressIndicator(
                         value: (_currentIndex + 1) / _questions.length,
-                        backgroundColor:
-                            AppColors.primary.withValues(alpha: 0.15),
-                        valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+                        backgroundColor: AppColors.primary.withValues(
+                          alpha: 0.15,
+                        ),
+                        valueColor: const AlwaysStoppedAnimation(
+                          AppColors.primary,
+                        ),
                         minHeight: 6,
                       ),
                     ),
@@ -282,17 +296,17 @@ class _QuizScreenState extends State<QuizScreen>
                     center: Text(
                       '$_timeLeft',
                       style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
-                          color: _timeLeft <= 10
-                              ? Colors.redAccent
-                              : AppColors.primary),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                        color: _timeLeft <= 10
+                            ? Colors.redAccent
+                            : AppColors.primary,
+                      ),
                     ),
                     progressColor: _timeLeft <= 10
                         ? Colors.redAccent
                         : AppColors.primary,
-                    backgroundColor:
-                        AppColors.primary.withValues(alpha: 0.15),
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.15),
                   ),
                 ],
               ),
@@ -303,10 +317,11 @@ class _QuizScreenState extends State<QuizScreen>
                 child: Text(
                   q.question,
                   style: GoogleFonts.poppins(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                      height: 1.5),
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                    height: 1.5,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ).animate().fadeIn(duration: 300.ms).slideY(begin: -0.05, end: 0),
@@ -323,17 +338,22 @@ class _QuizScreenState extends State<QuizScreen>
                     width: double.infinity,
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 18, vertical: 16),
+                      horizontal: 18,
+                      vertical: 16,
+                    ),
                     decoration: BoxDecoration(
                       color: _optionColor(i),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                          color: _optionBorderColor(i), width: 2),
+                        color: _optionBorderColor(i),
+                        width: 2,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.04),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2))
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
                       ],
                     ),
                     child: Row(
@@ -353,8 +373,8 @@ class _QuizScreenState extends State<QuizScreen>
                                     i == q.correctIndex
                                         ? Icons.check_rounded
                                         : i == _selectedAnswer
-                                            ? Icons.close_rounded
-                                            : null,
+                                        ? Icons.close_rounded
+                                        : null,
                                     size: 16,
                                     color: i == q.correctIndex
                                         ? AppColors.success
@@ -363,25 +383,28 @@ class _QuizScreenState extends State<QuizScreen>
                                 : Text(
                                     String.fromCharCode(65 + i),
                                     style: GoogleFonts.poppins(
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 13,
-                                        color: AppColors.primary),
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 13,
+                                      color: AppColors.primary,
+                                    ),
                                   ),
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: Text(opt,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppColors.textPrimary)),
+                          child: Text(
+                            opt,
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   ),
-                ).animate().fadeIn(
-                    delay: Duration(milliseconds: 100 + i * 60));
+                ).animate().fadeIn(delay: Duration(milliseconds: 100 + i * 60));
               }),
 
               const Spacer(),
@@ -391,12 +414,15 @@ class _QuizScreenState extends State<QuizScreen>
                     return quizProvider.submitting
                         ? const CircularProgressIndicator()
                         : GradientButton(
-                            label: _currentIndex == _questions.length - 1
-                                ? 'See Results'
-                                : 'Next Question',
-                            icon: Icons.arrow_forward_rounded,
-                            onTap: _nextQuestion,
-                          ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2, end: 0);
+                                label: _currentIndex == _questions.length - 1
+                                    ? 'See Results'
+                                    : 'Next Question',
+                                icon: Icons.arrow_forward_rounded,
+                                onTap: _nextQuestion,
+                              )
+                              .animate()
+                              .fadeIn(delay: 200.ms)
+                              .slideY(begin: 0.2, end: 0);
                   },
                 ),
             ],
@@ -433,22 +459,34 @@ class _QuizScreenState extends State<QuizScreen>
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.35),
-                          blurRadius: 24,
-                          offset: const Offset(0, 8))
+                        color: AppColors.primary.withValues(alpha: 0.35),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
+                      ),
                     ],
                   ),
-                  child: const Icon(Icons.emoji_events_rounded,
-                      color: AppColors.gold, size: 60),
+                  child: const Icon(
+                    Icons.emoji_events_rounded,
+                    color: AppColors.gold,
+                    size: 60,
+                  ),
                 ).animate().scale(duration: 600.ms, curve: Curves.elasticOut),
                 const SizedBox(height: 24),
-                Text('Quiz Complete! 🎉',
-                    style: GoogleFonts.poppins(
-                        fontSize: 26, fontWeight: FontWeight.w800)),
+                Text(
+                  'Quiz Complete! 🎉',
+                  style: GoogleFonts.poppins(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
                 const SizedBox(height: 8),
-                Text('You scored $percentage%',
-                    style: GoogleFonts.poppins(
-                        fontSize: 16, color: AppColors.textSecondary)),
+                Text(
+                  'You scored $percentage%',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
                 const SizedBox(height: 30),
                 CircularPercentIndicator(
                   radius: 70,
@@ -457,13 +495,20 @@ class _QuizScreenState extends State<QuizScreen>
                   center: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('$totalPts',
-                          style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w800, fontSize: 28)),
-                      Text('pts',
-                          style: GoogleFonts.poppins(
-                              fontSize: 13,
-                              color: AppColors.textSecondary)),
+                      Text(
+                        '$totalPts',
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 28,
+                        ),
+                      ),
+                      Text(
+                        'pts',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
                     ],
                   ),
                   progressColor: AppColors.primary,
@@ -474,29 +519,31 @@ class _QuizScreenState extends State<QuizScreen>
                   children: [
                     Expanded(
                       child: OutlineButton2(
-                          label: 'Play Again',
-                          onTap: () {
-                            context.read<QuizProvider>().resetAttempt();
-                            setState(() {
-                              _currentIndex = 0;
-                              _selectedAnswer = null;
-                              _answered = false;
-                              _score = 0;
-                              _quizComplete = false;
-                              _apiResult = null;
-                            });
-                            if (widget.quizId != null) {
-                              _loadApiQuestions();
-                            } else {
-                              _startTimer();
-                            }
-                          }),
+                        label: 'Play Again',
+                        onTap: () {
+                          context.read<QuizProvider>().resetAttempt();
+                          setState(() {
+                            _currentIndex = 0;
+                            _selectedAnswer = null;
+                            _answered = false;
+                            _score = 0;
+                            _quizComplete = false;
+                            _apiResult = null;
+                          });
+                          if (widget.quizId != null) {
+                            _loadApiQuestions();
+                          } else {
+                            _startTimer();
+                          }
+                        },
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: GradientButton(
-                          label: 'Done',
-                          onTap: () => Navigator.pop(context)),
+                        label: 'Done',
+                        onTap: () => Navigator.pop(context),
+                      ),
                     ),
                   ],
                 ),
