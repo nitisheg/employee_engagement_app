@@ -1,7 +1,7 @@
 import '../models/project_model.dart';
 import '../core/utils/app_logger.dart';
 import '../services/api/projects_api_service.dart';
-import 'base_view_model.dart';
+import 'base/base_view_model.dart';
 
 class ProjectsViewModel extends BaseViewModel {
   static const _tag = 'ProjectsViewModel';
@@ -24,7 +24,7 @@ class ProjectsViewModel extends BaseViewModel {
         status: status,
         category: category,
       );
-      _projects = (data as List)
+      _projects = (data)
           .map((json) => ProjectModel.fromJson(json))
           .toList();
       AppLogger.success(_tag, 'loadProjects succeeded');

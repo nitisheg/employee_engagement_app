@@ -198,8 +198,9 @@ class _QuizScreenState extends State<QuizScreen>
           : Colors.white;
     }
     final q = _questions[_currentIndex];
-    if (index == q.correctIndex)
+    if (index == q.correctIndex) {
       return AppColors.success.withValues(alpha: 0.15);
+    }
     if (index == _selectedAnswer) return Colors.red.withValues(alpha: 0.12);
     return Colors.white;
   }

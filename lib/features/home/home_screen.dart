@@ -62,7 +62,7 @@ class HomeScreen extends StatelessWidget {
                       child: ClipOval(
                         child:
                             (dashboard?.user.avatar != null &&
-                                (dashboard?.user.avatar?.isNotEmpty ?? false))
+                                (dashboard?.user.avatar.isNotEmpty ?? false))
                             ? Image.network(
                                 dashboard!.user.avatar,
                                 fit: BoxFit.cover,
@@ -101,7 +101,7 @@ class HomeScreen extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            "${_getTimeBasedGreeting()}, ${(user?.name?.split(' ').first ?? 'Employee')}!",
+                            "${_getTimeBasedGreeting()}, ${(user?.name.split(' ').first ?? 'Employee')}!",
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis, // 👈 ...
                             style: GoogleFonts.poppins(

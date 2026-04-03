@@ -325,7 +325,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                               ),
                                             ),
                                             Text(
-                                              '${session.checkIn != null ? _formatTime(session.checkIn!) : '--'} - ${session.checkOut != null ? _formatTime(session.checkOut!) : '--'}',
+                                              '${_formatTime(session.checkIn)} - ${session.checkOut != null ? _formatTime(session.checkOut!) : '--'}',
                                               style: const TextStyle(
                                                 fontWeight: FontWeight.bold,
                                               ),

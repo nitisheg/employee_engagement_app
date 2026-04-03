@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 import '../core/utils/app_logger.dart';
-import 'base_view_model.dart';
+import 'base/base_view_model.dart';
 
 class MainNavViewModel extends BaseViewModel {
   static const _tag = 'MainNavViewModel';

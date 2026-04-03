@@ -1,7 +1,7 @@
 import '../models/quiz_model.dart';
 import '../services/api_service.dart';
 import '../core/utils/app_logger.dart';
-import 'base_view_model.dart';
+import 'base/base_view_model.dart';
 
 class QuizViewModel extends BaseViewModel {
   static const _tag = 'QuizViewModel';
@@ -10,7 +10,7 @@ class QuizViewModel extends BaseViewModel {
   QuizAttemptData? _currentQuiz;
   List<Map<String, dynamic>> _quizResults = [];
   int _currentQuestionIndex = 0;
-  Map<int, String> _selectedAnswers = {};
+  final Map<int, String> _selectedAnswers = {};
 
   List<ActiveQuiz> get quizzes => _quizzes;
   QuizAttemptData? get currentQuiz => _currentQuiz;

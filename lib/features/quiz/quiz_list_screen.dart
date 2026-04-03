@@ -248,7 +248,7 @@ class _QuizListScreenState extends State<QuizListScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ...quizzes.map((quiz) => _QuizCard(quiz: quiz)).toList(),
+                      ...quizzes.map((quiz) => _QuizCard(quiz: quiz)),
                       if (provider.loadingMoreQuizzes)
                         const Padding(
                           padding: EdgeInsets.symmetric(vertical: 16),

@@ -1,6 +1,6 @@
 import '../core/utils/app_logger.dart';
 import '../services/api/leaderboard_api_service.dart';
-import 'base_view_model.dart';
+import 'base/base_view_model.dart';
 
 class LeaderboardViewModel extends BaseViewModel {
   static const _tag = 'LeaderboardViewModel';

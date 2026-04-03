@@ -23,7 +23,7 @@ class QuizAttemptScreen extends StatefulWidget {
 
 class _QuizAttemptScreenState extends State<QuizAttemptScreen>
     with SingleTickerProviderStateMixin {
-  int _currentPage = 1;
+  final int _currentPage = 1;
   final int _limit = 10;
   bool _loading = true;
   String? _error;

@@ -632,6 +632,7 @@ class _RankRow extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _TeamsTab extends StatelessWidget {
   final List<Map<String, dynamic>> teams = const [
     {

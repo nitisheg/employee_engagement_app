@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import '../models/user_model.dart';
 import '../services/api_service.dart';
 import '../core/utils/app_logger.dart';
-import 'base_view_model.dart';
+import 'base/base_view_model.dart';
 
 class AuthViewModel extends BaseViewModel {
   static const _tag = 'AuthViewModel';

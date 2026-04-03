@@ -2,7 +2,7 @@ import '../models/game_model.dart';
 import '../models/game_session_model.dart';
 import '../core/utils/app_logger.dart';
 import '../services/api/games_api_service.dart';
-import 'base_view_model.dart';
+import 'base/base_view_model.dart';
 
 class GamesViewModel extends BaseViewModel {
   static const _tag = 'GamesViewModel';
@@ -24,7 +24,7 @@ class GamesViewModel extends BaseViewModel {
     try {
       setLoading();
       final data = await GamesApiService().getGames(category: category);
-      _games = (data as List).map((json) => GameModel.fromJson(json)).toList();
+      _games = (data).map((json) => GameModel.fromJson(json)).toList();
       AppLogger.success(_tag, 'loadGames succeeded');
       setSuccess();
     } catch (e) {

@@ -1,7 +1,7 @@
 import '../models/certification_model.dart';
 import '../core/utils/app_logger.dart';
 import '../services/api/certifications_api_service.dart';
-import 'base_view_model.dart';
+import 'base/base_view_model.dart';
 
 class CertificationsViewModel extends BaseViewModel {
   static const _tag = 'CertificationsViewModel';
@@ -23,7 +23,7 @@ class CertificationsViewModel extends BaseViewModel {
       final data = await CertificationsApiService().getAvailableCertifications(
         category: category,
       );
-      _availableCertifications = (data as List)
+      _availableCertifications = (data)
           .map((json) => CertificationModel.fromJson(json))
           .toList();
       AppLogger.success(_tag, 'loadAvailableCertifications succeeded');

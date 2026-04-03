@@ -53,14 +53,15 @@ class ApiClient {
     dio.interceptors.add(_AuthInterceptor(dio, _storage, _cookieJar));
     if (kDebugMode) {
       dio.interceptors.add(
-        LogInterceptor(
-          requestHeader: false,
-          requestBody: true,
-          responseHeader: false,
-          responseBody: true,
-          error: true,
-          logPrint: (Object log) => AppLogger.network('DioLog', '$log'),
-        ),
+       LogInterceptor(
+        request: false,
+        requestBody: true,
+        responseBody: true,
+        error: true,
+        requestHeader: false,
+        responseHeader: false,
+        logPrint: (object) => debugPrint(object.toString()),
+      ),
       );
     }
   }

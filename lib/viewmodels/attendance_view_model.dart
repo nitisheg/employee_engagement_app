@@ -1,7 +1,7 @@
 import '../models/attendance_model.dart';
 import '../core/utils/app_logger.dart';
 import '../services/api/attendance_api_service.dart';
-import 'base_view_model.dart';
+import 'base/base_view_model.dart';
 
 class AttendanceViewModel extends BaseViewModel {
   static const _tag = 'AttendanceViewModel';
@@ -27,7 +27,7 @@ class AttendanceViewModel extends BaseViewModel {
         startDate: startDate,
         endDate: endDate,
       );
-      _attendanceHistory = (data as List)
+      _attendanceHistory = (data)
           .map((json) => AttendanceRecord.fromJson(json))
           .toList();
       AppLogger.success(_tag, 'loadAttendanceHistory succeeded');

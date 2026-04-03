@@ -74,7 +74,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
           return '${date.year}-${(index + 1).toString().padLeft(2, '0')}';
         });
 
-        return Container(
+        return SizedBox(
           height: 300,
           child: Column(
             children: [

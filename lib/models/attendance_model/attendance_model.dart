@@ -200,7 +200,7 @@ class CheckOutResponse {
 
   factory CheckOutResponse.fromJson(Map<String, dynamic> json) {
     return CheckOutResponse(
-      attendance: AttendanceRecord.fromJson(json as Map<String, dynamic>),
+      attendance: AttendanceRecord.fromJson(json),
     );
   }
 

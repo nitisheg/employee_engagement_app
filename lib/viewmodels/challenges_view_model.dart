@@ -1,7 +1,7 @@
 import '../models/challenge_model.dart';
 import '../core/utils/app_logger.dart';
 import '../services/api/challenges_api_service.dart';
-import 'base_view_model.dart';
+import 'base/base_view_model.dart';
 
 class ChallengesViewModel extends BaseViewModel {
   static const _tag = 'ChallengesViewModel';
@@ -23,7 +23,7 @@ class ChallengesViewModel extends BaseViewModel {
       final data = await ChallengesApiService().getActiveChallenges(
         category: category,
       );
-      _activeChallenges = (data as List)
+      _activeChallenges = (data)
           .map((json) => ChallengeModel.fromJson(json))
           .toList();
       AppLogger.success(_tag, 'loadActiveChallenges succeeded');

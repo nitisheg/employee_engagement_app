@@ -1,7 +1,7 @@
 import '../models/reward_model.dart';
 import '../core/utils/app_logger.dart';
 import '../services/api/rewards_api_service.dart';
-import 'base_view_model.dart';
+import 'base/base_view_model.dart';
 
 class RewardsViewModel extends BaseViewModel {
   static const _tag = 'RewardsViewModel';
@@ -21,7 +21,7 @@ class RewardsViewModel extends BaseViewModel {
     try {
       setLoading();
       final data = await RewardsApiService().getAvailableRewards();
-      _availableRewards = (data as List)
+      _availableRewards = (data)
           .map((json) => RewardModel.fromJson(json))
           .toList();
       AppLogger.success(_tag, 'loadAvailableRewards succeeded');
