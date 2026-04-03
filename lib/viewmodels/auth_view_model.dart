@@ -13,8 +13,7 @@ class AuthViewModel extends BaseViewModel {
 
   UserModel? get user => _user;
   bool get isAuthenticated => _user != null && state != ViewState.loading;
-
-  // ── Session restore ──────────────────────────────────────────────────────────
+  
 
   Future<void> init() async {
     AppLogger.info(_tag, 'init called');
@@ -37,8 +36,7 @@ class AuthViewModel extends BaseViewModel {
       setIdle();
     }
   }
-
-  // ── Auth actions ─────────────────────────────────────────────────────────────
+ 
 
   Future<bool> login(String email, String password) async {
     AppLogger.info(_tag, 'login called');
