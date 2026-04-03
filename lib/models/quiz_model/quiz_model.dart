@@ -124,6 +124,24 @@ class QuizAttemptData {
   });
 
   factory QuizAttemptData.fromJson(Map<String, dynamic> json) {
+    int _toInt(dynamic value, [int fallback = 0]) {
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value) ?? fallback;
+      return fallback;
+    }
+
+    bool _toBool(dynamic value, [bool fallback = false]) {
+      if (value is bool) return value;
+      if (value is num) return value != 0;
+      if (value is String) {
+        final normalized = value.toLowerCase().trim();
+        if (normalized == 'true' || normalized == '1') return true;
+        if (normalized == 'false' || normalized == '0') return false;
+      }
+      return fallback;
+    }
+
     final quizSection = json['quiz'] as Map<String, dynamic>?;
     final safeJson = quizSection ?? json;
     final pagination = json['pagination'] as Map<String, dynamic>?;
@@ -132,20 +150,55 @@ class QuizAttemptData {
         .map((q) => QuizAttemptQuestion.fromJson(q as Map<String, dynamic>))
         .toList();
 
-    final currentPage =
-        (json['page'] ??
-                pagination?['page'] ??
-                pagination?['currentPage'] ??
-                pagination?['current_page'] ??
-                1)
-            as int;
+    final currentPage = _toInt(
+      json['page'] ??
+          pagination?['page'] ??
+          pagination?['currentPage'] ??
+          pagination?['current_page'] ??
+          pagination?['current'],
+      1,
+    );
 
-    final resolvedTotalPages =
-        (json['totalPages'] ??
-                pagination?['totalPages'] ??
-                pagination?['total_pages'] ??
-                1)
-            as int;
+    final resolvedTotalPages = _toInt(
+      json['totalPages'] ??
+          pagination?['totalPages'] ??
+          pagination?['total_pages'] ??
+          pagination?['lastPage'] ??
+          pagination?['last_page'] ??
+          pagination?['pages'],
+      1,
+    );
+
+    final resolvedTotalQuestions = _toInt(
+      json['total'] ??
+          safeJson['total_questions'] ??
+          safeJson['totalQuestions'] ??
+          pagination?['total'] ??
+          pagination?['totalItems'] ??
+          pagination?['total_items'],
+      questionList.length,
+    );
+
+    final resolvedLimit = _toInt(
+      pagination?['limit'] ?? json['limit'],
+      questionList.length,
+    );
+
+    final hasNextFromApi = _toBool(
+      pagination?['hasNextPage'] ??
+          pagination?['hasNext'] ??
+          pagination?['has_next'] ??
+          pagination?['hasMore'] ??
+          pagination?['has_more'],
+      currentPage < resolvedTotalPages,
+    );
+
+    final hasPrevFromApi = _toBool(
+      pagination?['hasPrevPage'] ??
+          pagination?['hasPrev'] ??
+          pagination?['has_prev'],
+      currentPage > 1,
+    );
 
     return QuizAttemptData(
       quizId:
@@ -155,21 +208,10 @@ class QuizAttemptData {
       questions: questionList,
       page: currentPage,
       totalPages: resolvedTotalPages,
-      totalQuestions:
-          (json['total'] ??
-                  pagination?['total'] ??
-                  pagination?['totalItems'] ??
-                  pagination?['total_items'] ??
-                  questionList.length)
-              as int,
-      limit:
-          (pagination?['limit'] ?? json['limit'] ?? questionList.length) as int,
-      hasNextPage:
-          pagination?['hasNextPage'] as bool? ??
-          (pagination != null ? currentPage < resolvedTotalPages : false),
-      hasPrevPage:
-          pagination?['hasPrevPage'] as bool? ??
-          (pagination != null ? currentPage > 1 : false),
+        totalQuestions: resolvedTotalQuestions,
+        limit: resolvedLimit,
+        hasNextPage: hasNextFromApi,
+        hasPrevPage: hasPrevFromApi,
       alreadySubmitted:
           (json['alreadySubmitted'] ?? json['already_submitted'] ?? false)
               as bool,

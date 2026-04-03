@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/common_paginated_list.dart';
 import '../../core/widgets/common_widgets.dart';
 import '../../models/quiz_model.dart';
 import '../../providers/quiz_provider.dart';
@@ -15,31 +16,12 @@ class QuizResultsScreen extends StatefulWidget {
 }
 
 class _QuizResultsScreenState extends State<QuizResultsScreen> {
-  final ScrollController _scrollController = ScrollController();
-
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<QuizProvider>().fetchMyResults(refresh: true);
     });
-  }
-
-  @override
-  void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _onScroll() {
-    if (!_scrollController.hasClients) return;
-    final maxScroll = _scrollController.position.maxScrollExtent;
-    final currentScroll = _scrollController.position.pixels;
-    if (currentScroll >= (maxScroll - 200)) {
-      context.read<QuizProvider>().loadMoreMyResults();
-    }
   }
 
   @override
@@ -56,99 +38,27 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
       ),
       body: Consumer<QuizProvider>(
         builder: (context, provider, child) {
-          if (provider.loadingResults) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (provider.errorMessage != null) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(40),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline_rounded,
-                      size: 48,
-                      color: AppColors.error,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      provider.errorMessage!,
-                      style: GoogleFonts.poppins(
-                        color: AppColors.textSecondary,
-                        fontSize: 14,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () => provider.fetchMyResults(refresh: true),
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-
           final results = provider.myResults;
-          if (results.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(40),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.history_rounded,
-                      size: 48,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No quiz results yet',
-                      style: GoogleFonts.poppins(
-                        color: AppColors.textSecondary,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Complete some quizzes to see your results here',
-                      style: GoogleFonts.poppins(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-
-          return RefreshIndicator(
+          return CommonPaginatedList<QuizMyResult>(
+            items: results,
+            isInitialLoading: provider.loadingResults,
+            errorMessage: provider.errorMessage,
+            onRetry: () => provider.fetchMyResults(refresh: true),
             onRefresh: () => provider.fetchMyResults(refresh: true),
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              itemCount: results.length + (provider.loadingMoreResults ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index >= results.length) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
-
-                final result = results[index];
-                return _ResultCard(result: result)
-                    .animate()
-                    .fadeIn(delay: (index * 50).ms)
-                    .slideY(begin: 0.1, end: 0);
-              },
-            ),
+            isLoadingMore: provider.loadingMoreResults,
+            hasMore: provider.hasMoreResults,
+            onLoadMore: provider.loadMoreMyResults,
+            emptyTitle: 'No Quiz Results Yet',
+            emptyMessage: 'Complete some quizzes to see your results here.',
+            emptyIcon: Icons.history_rounded,
+            noMoreDataText: 'No more quiz results',
+            padding: const EdgeInsets.all(16),
+            itemBuilder: (context, result, index) {
+              return _ResultCard(result: result)
+                  .animate()
+                  .fadeIn(delay: (index * 50).ms)
+                  .slideY(begin: 0.1, end: 0);
+            },
           );
         },
       ),

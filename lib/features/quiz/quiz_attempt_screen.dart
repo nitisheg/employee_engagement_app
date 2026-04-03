@@ -24,7 +24,9 @@ class QuizAttemptScreen extends StatefulWidget {
 class _QuizAttemptScreenState extends State<QuizAttemptScreen>
     with SingleTickerProviderStateMixin {
   final int _currentPage = 1;
-  final int _limit = 10;
+  final int _initialLimit = 20;
+  final int _loadMoreLimit = 10;
+  bool _requestingMoreQuestions = false;
   bool _loading = true;
   String? _error;
 
@@ -51,7 +53,7 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
     final success = await provider.startAttempt(
       widget.quizId,
       page: _currentPage,
-      limit: _limit,
+      limit: _initialLimit,
     );
 
     if (mounted) {
@@ -118,6 +120,25 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
   void _selectAnswer(String questionId, int optionIndex) {
     final provider = context.read<QuizProvider>();
     provider.selectAnswer(questionId, optionIndex);
+  }
+
+  Future<void> _loadMoreQuestionsIfNeeded(ScrollNotification notification) async {
+    if (_requestingMoreQuestions) return;
+
+    final provider = context.read<QuizProvider>();
+    if (!provider.hasMoreAttemptQuestions || provider.loadingMoreAttempt) {
+      return;
+    }
+
+    if (notification.metrics.pixels >=
+        notification.metrics.maxScrollExtent * 0.9) {
+      _requestingMoreQuestions = true;
+      await provider.loadMoreAttemptQuestions(
+        widget.quizId,
+        limit: _loadMoreLimit,
+      );
+      _requestingMoreQuestions = false;
+    }
   }
 
   Future<void> _submitQuiz() async {
@@ -495,6 +516,10 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
 
             final totalQuestions = attempt.totalQuestions;
             final answeredCount = provider.answers.length;
+            final showNoMoreQuestionsFooter =
+              !provider.loadingMoreAttempt &&
+              !provider.hasMoreAttemptQuestions &&
+              attempt.questions.isNotEmpty;
 
             return Padding(
               padding: const EdgeInsets.all(16),
@@ -522,88 +547,127 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
                   const SizedBox(height: 24),
 
                   Expanded(
-                    child: ListView.builder(
-                      itemCount: attempt.questions.length,
-                      itemBuilder: (context, qIndex) {
-                        final question = attempt.questions[qIndex];
-                        final selectedAnswer = provider.getSelectedAnswer(
-                          question.id,
-                        );
+                    child: NotificationListener<ScrollNotification>(
+                      onNotification: (notification) {
+                        _loadMoreQuestionsIfNeeded(notification);
+                        return false;
+                      },
+                      child: ListView.builder(
+                        itemCount: attempt.questions.length +
+                            ((provider.loadingMoreAttempt ||
+                                    showNoMoreQuestionsFooter)
+                                ? 1
+                                : 0),
+                        itemBuilder: (context, qIndex) {
+                          if (qIndex >= attempt.questions.length) {
+                            if (provider.loadingMoreAttempt) {
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 16),
+                                child:
+                                    Center(child: CircularProgressIndicator()),
+                              );
+                            }
 
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Q${qIndex + 1}. ${question.question}',
-                              style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            ...question.options.asMap().entries.map((entry) {
-                              final index = entry.key;
-                              final option = entry.value;
-                              final isSelected = selectedAnswer == index;
-
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 10),
-                                child: AppCard(
-                                  child: InkWell(
-                                    onTap: () =>
-                                        _selectAnswer(question.id, index),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(14),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: isSelected
-                                              ? AppColors.primary
-                                              : AppColors.surface,
-                                          width: 2,
-                                        ),
-                                        color: isSelected
-                                            ? AppColors.primary.withOpacity(0.1)
-                                            : Colors.white,
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            '${String.fromCharCode(65 + index)}.',
-                                            style: GoogleFonts.poppins(
-                                              fontWeight: FontWeight.bold,
-                                              color: isSelected
-                                                  ? AppColors.primary
-                                                  : AppColors.textSecondary,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: Text(
-                                              option,
-                                              style: GoogleFonts.poppins(
-                                                fontSize: 15,
-                                                color: AppColors.textPrimary,
-                                              ),
-                                            ),
-                                          ),
-                                          if (isSelected)
-                                            const Icon(
-                                              Icons.check_circle,
-                                              color: Colors.green,
-                                            ),
-                                        ],
-                                      ),
+                            if (showNoMoreQuestionsFooter) {
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                                child: Center(
+                                  child: Text(
+                                    'No more questions',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ),
                               );
-                            }),
-                            const SizedBox(height: 16),
-                          ],
-                        );
-                      },
+                            }
+
+                            return const SizedBox.shrink();
+                          }
+
+                          final question = attempt.questions[qIndex];
+                          final selectedAnswer = provider.getSelectedAnswer(
+                            question.id,
+                          );
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Q${qIndex + 1}. ${question.question}',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              ...question.options.asMap().entries.map((entry) {
+                                final index = entry.key;
+                                final option = entry.value;
+                                final isSelected = selectedAnswer == index;
+
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 10),
+                                  child: AppCard(
+                                    child: InkWell(
+                                      onTap: () =>
+                                          _selectAnswer(question.id, index),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(14),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: isSelected
+                                                ? AppColors.primary
+                                                : AppColors.surface,
+                                            width: 2,
+                                          ),
+                                          color: isSelected
+                                              ? AppColors.primary.withOpacity(0.1)
+                                              : Colors.white,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Text(
+                                              '${String.fromCharCode(65 + index)}.',
+                                              style: GoogleFonts.poppins(
+                                                fontWeight: FontWeight.bold,
+                                                color: isSelected
+                                                    ? AppColors.primary
+                                                    : AppColors.textSecondary,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                option,
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 15,
+                                                  color: AppColors.textPrimary,
+                                                ),
+                                              ),
+                                            ),
+                                            if (isSelected)
+                                              const Icon(
+                                                Icons.check_circle,
+                                                color: Colors.green,
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }),
+                              const SizedBox(height: 16),
+                            ],
+                          );
+                        },
+                      ),
                     ),
                   ),
 

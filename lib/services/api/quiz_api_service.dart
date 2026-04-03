@@ -20,7 +20,7 @@ class QuizApiService {
   Future<Map<String, dynamic>> getQuizAttempt(
     String quizId, {
     int page = 1,
-    int limit = 10,
+    int limit = 100,
   }) async {
     final Response<Map<String, dynamic>> response =
         await _dio.get<Map<String, dynamic>>(

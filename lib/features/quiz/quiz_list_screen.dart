@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/common_paginated_list.dart';
 import '../../core/widgets/common_widgets.dart';
 import '../../models/quiz_model.dart';
 import '../../providers/quiz_provider.dart';
@@ -156,110 +157,30 @@ class _QuizListScreenState extends State<QuizListScreen>
   Widget _buildQuizList(String filter) {
     return Consumer<QuizProvider>(
       builder: (context, provider, child) {
-        if (provider.loadingQuizzes) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(40),
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-
-        if (provider.errorMessage != null) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(40),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.error_outline_rounded,
-                    size: 48,
-                    color: AppColors.error,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    provider.errorMessage!,
-                    style: GoogleFonts.poppins(
-                      color: AppColors.textSecondary,
-                      fontSize: 14,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => _fetchQuizzesForTab(_tabController.index),
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-
         final quizzes = provider.activeQuizzes;
-        if (quizzes.isEmpty) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(40),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.quiz_rounded,
-                    size: 48,
-                    color: AppColors.textSecondary,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No ${filter == 'all' ? 'active' : filter} quizzes available',
-                    style: GoogleFonts.poppins(
-                      color: AppColors.textSecondary,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-
-        return RefreshIndicator(
+        return CommonPaginatedList<ActiveQuiz>(
+          items: quizzes,
+          isInitialLoading: provider.loadingQuizzes,
+          errorMessage: provider.errorMessage,
+          onRetry: () => _fetchQuizzesForTab(_tabController.index),
           onRefresh: () =>
               provider.fetchActiveQuizzes(filter: filter, refresh: true),
-          child: NotificationListener<ScrollNotification>(
-            onNotification: (notification) {
-              if (notification.metrics.pixels >=
-                  notification.metrics.maxScrollExtent - 200) {
-                provider.loadMoreActiveQuizzes();
-              }
-              return false;
-            },
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: (MediaQuery.of(context).size.width * 0.042).clamp(
-                  12.0,
-                  24.0,
-                ),
-                vertical: 16,
-              ),
-              child: SafeArea(
-                top: false,
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ...quizzes.map((quiz) => _QuizCard(quiz: quiz)),
-                      if (provider.loadingMoreQuizzes)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          child: Center(child: CircularProgressIndicator()),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
+          isLoadingMore: provider.loadingMoreQuizzes,
+          hasMore: provider.hasMoreQuizzes,
+          onLoadMore: provider.loadMoreActiveQuizzes,
+          emptyTitle: 'No Quizzes Found',
+          emptyMessage:
+              'No ${filter == 'all' ? 'active' : filter} quizzes are available right now.',
+          emptyIcon: Icons.quiz_rounded,
+          noMoreDataText: 'No more quizzes',
+          padding: EdgeInsets.symmetric(
+            horizontal: (MediaQuery.of(context).size.width * 0.042).clamp(
+              12.0,
+              24.0,
             ),
+            vertical: 16,
           ),
+          itemBuilder: (context, quiz, _) => _QuizCard(quiz: quiz),
         );
       },
     );

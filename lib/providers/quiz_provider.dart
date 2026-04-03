@@ -21,6 +21,7 @@ class QuizProvider extends ChangeNotifier {
   // Current attempt
   QuizAttemptData? _currentAttempt;
   bool _loadingAttempt = false;
+  bool _loadingMoreAttempt = false;
 
   // Answers collected client-side
   final List<QuizAnswer> _answers = [];
@@ -49,6 +50,12 @@ class QuizProvider extends ChangeNotifier {
 
   QuizAttemptData? get currentAttempt => _currentAttempt;
   bool get loadingAttempt => _loadingAttempt;
+  bool get loadingMoreAttempt => _loadingMoreAttempt;
+  bool get hasMoreAttemptQuestions {
+    final attempt = _currentAttempt;
+    if (attempt == null) return false;
+    return attempt.hasNextPage || attempt.page < attempt.totalPages;
+  }
 
   List<QuizAnswer> get answers => List.unmodifiable(_answers);
 
@@ -148,7 +155,7 @@ class QuizProvider extends ChangeNotifier {
   Future<bool> startAttempt(
     String quizId, {
     int page = 1,
-    int limit = 10,
+    int limit = 20,
   }) async {
     AppLogger.info(_tag, 'startAttempt called');
     _loadingAttempt = true;
@@ -176,6 +183,68 @@ class QuizProvider extends ChangeNotifier {
       _errorMessage = e.toString();
       AppLogger.error(_tag, 'startAttempt error', e);
       _loadingAttempt = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> loadMoreAttemptQuestions(
+    String quizId, {
+    int limit = 10,
+  }) async {
+    final attempt = _currentAttempt;
+    if (attempt == null) return false;
+    if (_loadingAttempt || _loadingMoreAttempt || !hasMoreAttemptQuestions) {
+      return false;
+    }
+
+    final nextPage = attempt.page + 1;
+    _loadingMoreAttempt = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final data = await _quizApi.getQuizAttempt(
+        quizId,
+        page: nextPage,
+        limit: limit,
+      );
+      final nextAttempt = QuizAttemptData.fromJson(data);
+
+      final mergedQuestions = <QuizAttemptQuestion>[
+        ...attempt.questions,
+        ...nextAttempt.questions.where(
+          (q) => !attempt.questions.any((existing) => existing.id == q.id),
+        ),
+      ];
+
+      _currentAttempt = QuizAttemptData(
+        quizId: attempt.quizId,
+        title: attempt.title,
+        questions: mergedQuestions,
+        page: nextAttempt.page,
+        totalPages: nextAttempt.totalPages,
+        totalQuestions: nextAttempt.totalQuestions,
+        limit: nextAttempt.limit,
+        hasNextPage: nextAttempt.hasNextPage,
+        hasPrevPage: nextAttempt.hasPrevPage,
+        alreadySubmitted: nextAttempt.alreadySubmitted,
+      );
+
+      AppLogger.success(_tag, 'loadMoreAttemptQuestions succeeded');
+      _loadingMoreAttempt = false;
+      notifyListeners();
+      return true;
+    } on DioException catch (e) {
+      _errorMessage = ApiException.fromDioException(e);
+      AppLogger.error(_tag, 'loadMoreAttemptQuestions DioException', e);
+      _loadingMoreAttempt = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = e.toString();
+      AppLogger.error(_tag, 'loadMoreAttemptQuestions error', e);
+      _loadingMoreAttempt = false;
       notifyListeners();
       return false;
     }
@@ -350,6 +419,7 @@ class QuizProvider extends ChangeNotifier {
   void resetAttempt() {
     AppLogger.info(_tag, 'resetAttempt called');
     _currentAttempt = null;
+    _loadingMoreAttempt = false;
     _answers.clear();
     _lastResult = null;
     notifyListeners();

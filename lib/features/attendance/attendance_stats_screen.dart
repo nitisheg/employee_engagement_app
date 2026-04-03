@@ -48,7 +48,12 @@ class _AttendanceStatsScreenState extends State<AttendanceStatsScreen> {
             body: provider.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : attendanceHistory == null
-                ? const Center(child: Text('No data available'))
+              ? const EmptyStateWidget(
+                title: 'No Attendance Data',
+                message:
+                  'No attendance records were found for this period.',
+                icon: Icons.insights_rounded,
+                )
                 : SingleChildScrollView(
                     padding: const EdgeInsets.all(16),
                     child: Column(
