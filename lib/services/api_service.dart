@@ -299,9 +299,12 @@ class QuizApiService {
     int limit = 10,
   }) async {
     final resp = await _dio.get<Map<String, dynamic>>(
-      '/api/quizzes/$quizId/take',
-      queryParameters: {'page': page, 'limit': limit},
+      '/api/quizzes/$quizId/take?page=1&limit=20',
     );
+    // final resp = await _dio.get<Map<String, dynamic>>(
+    //   '/api/quizzes/$quizId/take',
+    //   queryParameters: {'page': page, 'limit': limit},
+    // );
 
     if (resp.data == null) {
       throw Exception('Quiz attempt response body is null');
@@ -309,7 +312,6 @@ class QuizApiService {
 
     final raw = resp.data!;
 
-    // Support payloads like {data: {...}, pagination: {...}}
     if (raw.containsKey('data') && raw['data'] is Map<String, dynamic>) {
       final dataPayload = Map<String, dynamic>.from(
         raw['data'] as Map<String, dynamic>,
