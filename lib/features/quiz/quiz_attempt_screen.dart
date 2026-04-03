@@ -145,7 +145,41 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
   }
 
   void _showResultDialog(QuizSubmitResult result) {
-    final percentage = (result.percentage * 100).round();
+    final provider = context.read<QuizProvider>();
+    final attemptTotal = provider.currentAttempt?.totalQuestions ?? 0;
+    final answeredTotal = provider.answers
+        .where((a) => a.selectedOption >= 0)
+        .length;
+
+    int resolvedTotal = result.totalQuestions;
+    if (resolvedTotal <= 0 && result.results.isNotEmpty) {
+      resolvedTotal = result.results.length;
+    }
+    if (resolvedTotal <= 0 && attemptTotal > 0) {
+      resolvedTotal = attemptTotal;
+    }
+    if (resolvedTotal <= 0 && answeredTotal > 0) {
+      resolvedTotal = answeredTotal;
+    }
+
+    int resolvedCorrect = result.correctAnswers;
+    if (resolvedCorrect < 0) {
+      resolvedCorrect = 0;
+    }
+    if (resolvedTotal > 0 && resolvedCorrect > resolvedTotal) {
+      resolvedCorrect = resolvedTotal;
+    }
+
+    final resolvedIncorrect = resolvedTotal > resolvedCorrect
+        ? resolvedTotal - resolvedCorrect
+        : 0;
+    final resolvedPoints = result.pointsEarned > 0
+        ? result.pointsEarned
+        : result.scoredPoints;
+    final progressValue = resolvedTotal > 0
+        ? (resolvedCorrect / resolvedTotal).clamp(0.0, 1.0)
+        : 0.0;
+    final percentage = (progressValue * 100).round();
     final isExcellent = percentage >= 90;
     final isGood = percentage >= 70;
     final isPassed = percentage >= 50;
@@ -161,6 +195,7 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
           children: [
             // Header with icon
             Container(
+              width: 500,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
@@ -252,39 +287,37 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    '${result.correctAnswers}/${result.totalQuestions} Correct',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
                 ],
               ),
             ),
             const SizedBox(height: 20),
 
-            // Stats row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            // Stats
+            Wrap(
+              alignment: WrapAlignment.spaceEvenly,
+              spacing: 18,
+              runSpacing: 12,
               children: [
                 _ResultStatItem(
                   icon: Icons.check_circle_rounded,
-                  value: '${result.correctAnswers}',
+                  value: '$resolvedCorrect/$resolvedTotal',
                   label: 'Correct',
                   color: AppColors.success,
                 ),
-                _ResultStatItem(
-                  icon: Icons.cancel_rounded,
-                  value: '${result.totalQuestions - result.correctAnswers}',
-                  label: 'Incorrect',
-                  color: AppColors.error,
-                ),
+                Spacer(),
                 _ResultStatItem(
                   icon: Icons.stars_rounded,
                   value: '${result.pointsEarned}',
                   label: 'Points',
                   color: AppColors.primary,
+                ),
+                Spacer(),
+
+                _ResultStatItem(
+                  icon: Icons.cancel_rounded,
+                  value: '$resolvedIncorrect/$resolvedTotal',
+                  label: 'Wrong',
+                  color: AppColors.error,
                 ),
               ],
             ),
@@ -317,7 +350,7 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
                 ),
                 const SizedBox(height: 8),
                 LinearProgressIndicator(
-                  value: result.percentage,
+                  value: progressValue,
                   backgroundColor: AppColors.surface,
                   valueColor: AlwaysStoppedAnimation<Color>(
                     isExcellent
