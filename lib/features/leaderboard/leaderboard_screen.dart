@@ -346,7 +346,7 @@ class _LeaderboardList extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      'Rank #${userEntry?.rank ?? employees.first.rank}',
+                      'Rank #${userEntry?.rank ?? 0}',
                       style: GoogleFonts.poppins(
                         color: AppColors.white,
                         fontWeight: FontWeight.w700,
@@ -354,7 +354,7 @@ class _LeaderboardList extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '${userEntry?.points ?? employees.first.points} pts',
+                      '${userEntry?.points ?? 0} pts',
                       style: GoogleFonts.poppins(
                         color: AppColors.white.withValues(alpha: 0.8),
                         fontSize: 12,

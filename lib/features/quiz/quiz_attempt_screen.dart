@@ -123,7 +123,9 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
     provider.selectAnswer(questionId, optionIndex);
   }
 
-  Future<void> _loadMoreQuestionsIfNeeded(ScrollNotification notification) async {
+  Future<void> _loadMoreQuestionsIfNeeded(
+    ScrollNotification notification,
+  ) async {
     if (_requestingMoreQuestions) return;
 
     final provider = context.read<QuizProvider>();
@@ -514,9 +516,9 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
             final totalQuestions = attempt.totalQuestions;
             final answeredCount = provider.answers.length;
             final showNoMoreQuestionsFooter =
-              !provider.loadingMoreAttempt &&
-              !provider.hasMoreAttemptQuestions &&
-              attempt.questions.isNotEmpty;
+                !provider.loadingMoreAttempt &&
+                !provider.hasMoreAttemptQuestions &&
+                attempt.questions.isNotEmpty;
 
             return Padding(
               padding: const EdgeInsets.all(16),
@@ -550,7 +552,8 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
                         return false;
                       },
                       child: ListView.builder(
-                        itemCount: attempt.questions.length +
+                        itemCount:
+                            attempt.questions.length +
                             ((provider.loadingMoreAttempt ||
                                     showNoMoreQuestionsFooter)
                                 ? 1
@@ -560,15 +563,17 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
                             if (provider.loadingMoreAttempt) {
                               return const Padding(
                                 padding: EdgeInsets.symmetric(vertical: 16),
-                                child:
-                                    Center(child: CircularProgressIndicator()),
+                                child: Center(
+                                  child: CircularProgressIndicator(),
+                                ),
                               );
                             }
 
                             if (showNoMoreQuestionsFooter) {
                               return Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
                                 child: Center(
                                   child: Text(
                                     'No more questions',
@@ -616,7 +621,9 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
                                       child: Container(
                                         padding: const EdgeInsets.all(14),
                                         decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                           border: Border.all(
                                             color: isSelected
                                                 ? AppColors.primary
@@ -625,7 +632,7 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
                                           ),
                                           color: isSelected
                                               ? AppColors.primary.withOpacity(0.1)
-                                              : AppColors.white,
+                                              : Colors.white,
                                         ),
                                         child: Row(
                                           children: [
