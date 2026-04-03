@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../app/routes.dart';
 import '../../core/theme/app_colors.dart';
-import '../../main.dart';
+import '../../services/storage/secure_storage_service.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -79,15 +79,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _completeOnboarding() async {
-    final storage = FlutterSecureStorage();
-    await storage.write(key: 'onboarding_completed', value: 'true');
+    final storage = SecureStorageService.instance;
+    await storage.write(
+      key: SecureStorageService.onboardingCompletedKey,
+      value: 'true',
+    );
 
     if (mounted) {
-      // Instead of navigating, we'll restart the app to let AppInitializer handle the flow
-      // This ensures the onboarding status is properly checked
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const AppRestartHandler()),
-      );
+      Navigator.of(context).pushReplacementNamed(AppRoutes.appRestart);
     }
   }
 
