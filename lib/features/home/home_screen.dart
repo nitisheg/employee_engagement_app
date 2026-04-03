@@ -57,7 +57,7 @@ class HomeScreen extends StatelessWidget {
                       height: 42,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
+                        border: Border.all(color: AppColors.white, width: 2),
                       ),
                       child: ClipOval(
                         child:
@@ -78,12 +78,12 @@ class HomeScreen extends StatelessWidget {
                                 height: 42,
                               )
                             : Container(
-                                color: Colors.white.withOpacity(0.2),
+                                color: AppColors.white.withOpacity(0.2),
                                 child: Center(
                                   child: Text(
                                     user?.initials ?? '--',
                                     style: const TextStyle(
-                                      color: Colors.white,
+                                      color: AppColors.white,
                                       fontWeight: FontWeight.w700,
                                       fontSize: 15,
                                     ),
@@ -105,7 +105,7 @@ class HomeScreen extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis, // 👈 ...
                             style: GoogleFonts.poppins(
-                              color: Colors.white,
+                              color: AppColors.white,
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                             ),
@@ -115,7 +115,7 @@ class HomeScreen extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.poppins(
-                              color: Colors.white.withOpacity(0.8),
+                              color: AppColors.white.withOpacity(0.8),
                               fontSize: 12,
                             ),
                           ),
@@ -132,7 +132,7 @@ class HomeScreen extends StatelessWidget {
                   IconButton(
                     icon: const Icon(
                       Icons.notifications_outlined,
-                      color: Colors.white,
+                      color: AppColors.white,
                       size: 26,
                     ),
                     onPressed: () {
@@ -196,7 +196,7 @@ class HomeScreen extends StatelessWidget {
                               icon: Icons.leaderboard_rounded,
                               label:
                                   'Rank #${dashboard?.points.rank ?? user?.rank ?? 0}',
-                              color: Colors.lightBlueAccent,
+                              color: AppColors.infoAccent,
                             ),
                             const SizedBox(width: 8),
                             _MiniStatChip(
@@ -308,7 +308,7 @@ class HomeScreen extends StatelessWidget {
                         _QuickActionItem(
                           icon: Icons.workspace_premium_rounded,
                           label: 'Certifications',
-                          color: Colors.teal,
+                          color: AppColors.teal,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -319,7 +319,7 @@ class HomeScreen extends StatelessWidget {
                         _QuickActionItem(
                           icon: Icons.games_rounded,
                           label: 'Games',
-                          color: Colors.deepPurple,
+                          color: AppColors.violet,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -409,7 +409,7 @@ class HomeScreen extends StatelessWidget {
                               "title": "Sudoku",
                               "subtitle": "Up to 200 pts",
                               "icon": Icons.grid_on_rounded,
-                              "color": Colors.teal,
+                              "color": AppColors.teal,
                               "screen": const SudokuScreen(),
                             },
                             {
@@ -458,7 +458,7 @@ class HomeScreen extends StatelessWidget {
                           ),
                           child: const Icon(
                             Icons.quiz_rounded,
-                            color: Colors.white,
+                            color: AppColors.white,
                             size: 28,
                           ),
                         ),
@@ -497,7 +497,7 @@ class HomeScreen extends StatelessWidget {
                           child: Text(
                             'Play',
                             style: GoogleFonts.poppins(
-                              color: Colors.white,
+                              color: AppColors.white,
                               fontWeight: FontWeight.w600,
                               fontSize: 13,
                             ),
@@ -533,7 +533,7 @@ class _MiniStatChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.2),
+        color: AppColors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -544,7 +544,7 @@ class _MiniStatChip extends StatelessWidget {
           Text(
             label,
             style: GoogleFonts.poppins(
-              color: Colors.white,
+              color: AppColors.white,
               fontSize: 11,
               fontWeight: FontWeight.w600,
             ),
@@ -695,3 +695,4 @@ class _ChallengeCard extends StatelessWidget {
     );
   }
 }
+

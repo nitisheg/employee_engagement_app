@@ -126,7 +126,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
               title: const Text('Attendance History'),
               centerTitle: true,
               backgroundColor: AppColors.primary,
-              surfaceTintColor: Colors.white,
+              surfaceTintColor: AppColors.white,
               elevation: 0,
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(1),
@@ -351,3 +351,4 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
     );
   }
 }
+

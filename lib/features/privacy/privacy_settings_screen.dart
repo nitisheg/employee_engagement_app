@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/app_snackbar.dart';
 import '../../providers/notification_provider.dart';
 import '../../models/privacy_settings_model.dart';
 
@@ -32,9 +33,11 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
     final success = await provider.updatePrivacySettings(updated);
 
     if (!success && mounted) {
-      ScaffoldMessenger.of(
+      AppSnackBar.show(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Failed to update setting')));
+        message: 'Failed to update setting',
+        type: AppSnackBarType.error,
+      );
     }
   }
 
@@ -48,13 +51,13 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
           'Privacy & Security',
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.w600,
-            color: Colors.white,
+            color: AppColors.white,
           ),
         ),
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new_rounded,
-            color: Colors.white,
+            color: AppColors.white,
           ),
           onPressed: () => Navigator.pop(context),
         ),
@@ -307,7 +310,7 @@ class _SettingSection extends StatelessWidget {
         const SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.white,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -357,3 +360,4 @@ class _PrivacyToggleTile extends StatelessWidget {
     );
   }
 }
+

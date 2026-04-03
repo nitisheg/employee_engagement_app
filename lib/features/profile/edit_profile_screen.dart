@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/app_snackbar.dart';
 import '../../core/widgets/common_widgets.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/auth_provider.dart';
@@ -119,25 +120,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         if (updatedUser != null) {
           context.read<AuthProvider>().updateUser(updatedUser);
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Profile updated successfully',
-              style: GoogleFonts.poppins(),
-            ),
-            backgroundColor: AppColors.success,
-          ),
+        AppSnackBar.show(
+          context,
+          message: 'Profile updated successfully',
+          type: AppSnackBarType.success,
         );
         Navigator.pop(context);
       } else {
         final error =
             context.read<ProfileProvider>().errorMessage ??
             'Failed to update profile';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(error, style: GoogleFonts.poppins()),
-            backgroundColor: Colors.redAccent,
-          ),
+        AppSnackBar.show(
+          context,
+          message: error,
+          type: AppSnackBarType.error,
         );
       }
     }
@@ -153,14 +149,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     if (mounted) {
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Password changed successfully',
-              style: GoogleFonts.poppins(),
-            ),
-            backgroundColor: AppColors.success,
-          ),
+        AppSnackBar.show(
+          context,
+          message: 'Password changed successfully',
+          type: AppSnackBarType.success,
         );
         _currentPasswordController.clear();
         _newPasswordController.clear();
@@ -170,11 +162,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         final error =
             context.read<ProfileProvider>().errorMessage ??
             'Failed to change password';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(error, style: GoogleFonts.poppins()),
-            backgroundColor: Colors.redAccent,
-          ),
+        AppSnackBar.show(
+          context,
+          message: error,
+          type: AppSnackBarType.error,
         );
       }
     }
@@ -193,25 +184,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         if (updatedUser != null) {
           context.read<AuthProvider>().updateUser(updatedUser);
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Avatar updated successfully',
-              style: GoogleFonts.poppins(),
-            ),
-            backgroundColor: AppColors.success,
-          ),
+        AppSnackBar.show(
+          context,
+          message: 'Avatar updated successfully',
+          type: AppSnackBarType.success,
         );
         setState(() => _selectedImage = null);
       } else {
         final error =
             context.read<ProfileProvider>().errorMessage ??
             'Failed to upload avatar';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(error, style: GoogleFonts.poppins()),
-            backgroundColor: Colors.redAccent,
-          ),
+        AppSnackBar.show(
+          context,
+          message: error,
+          type: AppSnackBarType.error,
         );
       }
     }
@@ -227,13 +213,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           'Edit Profile',
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.w600,
-            color: Colors.white,
+            color: AppColors.white,
           ),
         ),
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new_rounded,
-            color: Colors.white,
+            color: AppColors.white,
           ),
           onPressed: () => Navigator.pop(context),
         ),
@@ -286,7 +272,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                           child: Text(
                                             authProvider.user?.initials ?? '?',
                                             style: const TextStyle(
-                                              color: Colors.white,
+                                              color: AppColors.white,
                                               fontSize: 32,
                                               fontWeight: FontWeight.bold,
                                             ),
@@ -298,7 +284,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   child: Text(
                                     authProvider.user?.initials ?? '?',
                                     style: const TextStyle(
-                                      color: Colors.white,
+                                      color: AppColors.white,
                                       fontSize: 32,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -315,7 +301,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
+                            foregroundColor: AppColors.white,
                           ),
                         ),
                         if (_selectedImage != null)
@@ -335,7 +321,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                         onPressed: _handleUploadAvatar,
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: AppColors.success,
-                                          foregroundColor: Colors.white,
+                                          foregroundColor: AppColors.white,
                                         ),
                                         child: Text(
                                           'Upload Avatar',
@@ -477,7 +463,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     ),
                                     child: const Center(
                                       child: CircularProgressIndicator(
-                                        color: Colors.white,
+                                        color: AppColors.white,
                                         strokeWidth: 2.5,
                                       ),
                                     ),
@@ -515,7 +501,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.warning,
-                        foregroundColor: Colors.white,
+                        foregroundColor: AppColors.white,
                       ),
                     )
                   else
@@ -648,7 +634,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                             ),
                                             child: const Center(
                                               child: CircularProgressIndicator(
-                                                color: Colors.white,
+                                                color: AppColors.white,
                                                 strokeWidth: 2,
                                               ),
                                             ),
@@ -658,7 +644,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                             style: ElevatedButton.styleFrom(
                                               backgroundColor:
                                                   AppColors.warning,
-                                              foregroundColor: Colors.white,
+                                              foregroundColor: AppColors.white,
                                             ),
                                             child: Text(
                                               'Update Password',
@@ -683,3 +669,4 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 }
+

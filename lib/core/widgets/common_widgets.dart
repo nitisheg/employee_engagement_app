@@ -36,13 +36,13 @@ class GradientButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (icon != null) ...[
-              Icon(icon, color: Colors.white, size: 20),
+              Icon(icon, color: AppColors.white, size: 20),
               const SizedBox(width: 8),
             ],
             Text(
               label,
               style: GoogleFonts.poppins(
-                color: Colors.white,
+                color: AppColors.white,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -68,7 +68,7 @@ class OutlineButton2 extends StatelessWidget {
         width: double.infinity,
         height: 54,
         decoration: BoxDecoration(
-          color: Colors.transparent,
+          color: AppColors.transparent,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: AppColors.primary, width: 2),
         ),
@@ -168,7 +168,7 @@ class PointsBadge extends StatelessWidget {
           Text(
             '$points pts',
             style: GoogleFonts.poppins(
-              color: Colors.white,
+              color: AppColors.white,
               fontSize: 13,
               fontWeight: FontWeight.w600,
             ),
@@ -232,11 +232,11 @@ class AppCard extends StatelessWidget {
     return Container(
       padding: padding ?? const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: AppColors.black.withValues(alpha: 0.06),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -396,3 +396,4 @@ class GameCard extends StatelessWidget {
     );
   }
 }
+

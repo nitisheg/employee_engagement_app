@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/app_snackbar.dart';
 import '../../core/widgets/common_widgets.dart';
 import '../../providers/auth_provider.dart';
 
@@ -70,14 +71,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
     if (!_agreeToTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Please agree to the terms and conditions',
-            style: GoogleFonts.poppins(),
-          ),
-          backgroundColor: AppColors.warning,
-        ),
+      AppSnackBar.show(
+        context,
+        message: 'Please agree to the terms and conditions',
+        type: AppSnackBarType.warning,
       );
       return;
     }
@@ -93,24 +90,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!mounted) return;
     setState(() => _isLoading = false);
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Account created! Please log in.',
-            style: GoogleFonts.poppins(),
-          ),
-          backgroundColor: AppColors.success,
-        ),
+      AppSnackBar.show(
+        context,
+        message: 'Account created! Please log in.',
+        type: AppSnackBarType.success,
       );
       Navigator.pop(context); // Go back to login
     } else {
       final error =
           context.read<AuthProvider>().errorMessage ?? 'Registration failed.';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error, style: GoogleFonts.poppins()),
-          backgroundColor: Colors.redAccent,
-        ),
+      AppSnackBar.show(
+        context,
+        message: error,
+        type: AppSnackBarType.error,
       );
     }
   }
@@ -147,7 +139,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         onPressed: () => Navigator.pop(context),
                         icon: const Icon(
                           Icons.arrow_back_ios_new_rounded,
-                          color: Colors.white,
+                          color: AppColors.white,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -159,14 +151,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: (size.width * 0.064).clamp(18.0, 26.0),
                               fontWeight: FontWeight.w700,
-                              color: Colors.white,
+                              color: AppColors.white,
                             ),
                           ),
                           Text(
                             'Join your team on EngageHub',
                             style: GoogleFonts.poppins(
                               fontSize: 13,
-                              color: Colors.white.withValues(alpha: 0.8),
+                              color: AppColors.white.withValues(alpha: 0.8),
                             ),
                           ),
                         ],
@@ -353,7 +345,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                             child: const Center(
                               child: CircularProgressIndicator(
-                                color: Colors.white,
+                                color: AppColors.white,
                                 strokeWidth: 2.5,
                               ),
                             ),
@@ -398,3 +390,4 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 }
+

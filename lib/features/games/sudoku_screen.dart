@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:employee_engagement_app/core/theme/app_colors.dart';
+import 'package:employee_engagement_app/core/widgets/app_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -161,8 +162,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
       gameStarted = false;
       score = 0;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("⏰ Time's up! You scored 0 points.")),
+    AppSnackBar.show(
+      context,
+      message: "Time's up! You scored 0 points.",
+      type: AppSnackBarType.warning,
     );
   }
 
@@ -190,14 +193,16 @@ class _SudokuScreenState extends State<SudokuScreen> {
           gameStarted = false;
           score = 0;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("❌ 3 Mistakes! Game Over. Score: 0")),
+        AppSnackBar.show(
+          context,
+          message: "3 mistakes! Game over. Score: 0",
+          type: AppSnackBarType.error,
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("❌ Wrong! Mistakes: $mistakesMade/$maxMistakes"),
-          ),
+        AppSnackBar.show(
+          context,
+          message: 'Wrong! Mistakes: $mistakesMade/$maxMistakes',
+          type: AppSnackBarType.warning,
         );
       }
       return;
@@ -227,8 +232,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
       gameStarted = false;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("✅ Correct! You scored $score points.")),
+    AppSnackBar.show(
+      context,
+      message: 'Correct! You scored $score points.',
+      type: AppSnackBarType.success,
     );
   }
 
@@ -236,8 +243,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
     if (!gameStarted) return;
 
     if (hintsUsed >= maxHints) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("⚠️ No more hints available!")),
+      AppSnackBar.show(
+        context,
+        message: 'No more hints available!',
+        type: AppSnackBarType.warning,
       );
       return;
     }
@@ -261,8 +270,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
       hintsUsed++;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("💡 Hint used! ($hintsUsed/$maxHints)")),
+    AppSnackBar.show(
+      context,
+      message: 'Hint used! ($hintsUsed/$maxHints)',
+      type: AppSnackBarType.info,
     );
   }
 
@@ -297,7 +308,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
                   ? Colors.grey.shade200
                   : (showMistakes && wrongCells[row][col])
                   ? Colors.red.shade200
-                  : Colors.white,
+                  : AppColors.white,
               border: border,
             ),
             child: Center(
@@ -319,7 +330,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
                       ],
                       style: const TextStyle(
                         fontSize: 16,
-                        color: Colors.blue, // Always blue, no live red
+                        color: AppColors.info, // Always blue, no live red
                       ),
                       decoration: const InputDecoration(
                         border: InputBorder.none,
@@ -358,7 +369,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         title: const Text('Sudoku'),
         centerTitle: true,
         backgroundColor: AppColors.primary,
-        surfaceTintColor: Colors.white,
+        surfaceTintColor: AppColors.white,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(color: Colors.grey.shade300, height: 1),
@@ -437,3 +448,4 @@ class _SudokuScreenState extends State<SudokuScreen> {
     );
   }
 }
+

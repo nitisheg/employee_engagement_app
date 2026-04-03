@@ -34,7 +34,7 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
           style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
         ),
         backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.white,
       ),
       body: Consumer<QuizProvider>(
         builder: (context, provider, child) {
@@ -254,3 +254,4 @@ class _ScoreItem extends StatelessWidget {
     );
   }
 }
+

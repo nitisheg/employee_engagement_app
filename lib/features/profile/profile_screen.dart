@@ -72,10 +72,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             .clamp(72.0, 100.0),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 3),
+                          border: Border.all(color: AppColors.white, width: 3),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
+                              color: AppColors.black.withValues(alpha: 0.2),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -95,7 +95,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           child: Text(
                                             user.initials,
                                             style: const TextStyle(
-                                              color: Colors.white,
+                                              color: AppColors.white,
                                               fontSize: 28,
                                               fontWeight: FontWeight.w800,
                                             ),
@@ -109,7 +109,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     child: Text(
                                       user.initials,
                                       style: const TextStyle(
-                                        color: Colors.white,
+                                        color: AppColors.white,
                                         fontSize: 28,
                                         fontWeight: FontWeight.w800,
                                       ),
@@ -122,7 +122,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Text(
                         user.name,
                         style: GoogleFonts.poppins(
-                          color: Colors.white,
+                          color: AppColors.white,
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
                         ),
@@ -130,7 +130,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Text(
                         '${user.designation ?? 'Employee'} • ${user.department}',
                         style: GoogleFonts.poppins(
-                          color: Colors.white.withValues(alpha: 0.85),
+                          color: AppColors.white.withValues(alpha: 0.85),
                           fontSize: 13,
                         ),
                       ),
@@ -142,14 +142,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             title: Text(
               'My Profile',
               style: GoogleFonts.poppins(
-                color: Colors.white,
+                color: AppColors.white,
                 fontWeight: FontWeight.w600,
                 fontSize: 18,
               ),
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.edit_outlined, color: Colors.white),
+                icon: const Icon(Icons.edit_outlined, color: AppColors.white),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -389,7 +389,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             _AchievementBadge(
                               label: '📚 Learner',
-                              color: Colors.teal,
+                              color: AppColors.teal,
                             ),
                           ]
                         : [
@@ -401,7 +401,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             _AchievementBadge(
                               label: '📚 Learner',
-                              color: Colors.teal,
+                              color: AppColors.teal,
                             ),
                           ],
                   ).animate().fadeIn(delay: 250.ms),
@@ -486,7 +486,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         _ActivityItem(
                           icon: Icons.workspace_premium_rounded,
-                          color: Colors.teal,
+                          color: AppColors.teal,
                           title: 'Added Certification',
                           subtitle: 'AWS Cloud Practitioner',
                           time: 'Yesterday',
@@ -580,7 +580,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _SettingsTile(
                           icon: Icons.logout_rounded,
                           label: 'Logout',
-                          color: Colors.redAccent,
+                          color: AppColors.errorAccent,
                           onTap: () async {
                             final shouldLogout = await showDialog<bool>(
                               context: context,
@@ -612,7 +612,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     child: Text(
                                       'Logout',
                                       style: GoogleFonts.poppins(
-                                        color: Colors.redAccent,
+                                        color: AppColors.errorAccent,
                                       ),
                                     ),
                                   ),
@@ -665,11 +665,11 @@ class _ProfileStatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: AppColors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -816,12 +816,12 @@ class _CertPreviewItem extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: Colors.teal.withValues(alpha: 0.1),
+              color: AppColors.teal.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(
               Icons.workspace_premium_rounded,
-              color: Colors.teal,
+              color: AppColors.teal,
               size: 20,
             ),
           ),
@@ -963,7 +963,7 @@ class _SettingsTile extends StatelessWidget {
         style: GoogleFonts.poppins(
           fontWeight: FontWeight.w500,
           fontSize: 14,
-          color: label == 'Logout' ? Colors.redAccent : AppColors.textPrimary,
+          color: label == 'Logout' ? AppColors.errorAccent : AppColors.textPrimary,
         ),
       ),
       trailing: Icon(
@@ -976,3 +976,4 @@ class _SettingsTile extends StatelessWidget {
     );
   }
 }
+

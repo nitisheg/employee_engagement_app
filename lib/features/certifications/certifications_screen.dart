@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/app_snackbar.dart';
 import '../../core/widgets/common_widgets.dart';
 
 class _Cert {
@@ -93,13 +94,13 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       builder: (_) => StatefulBuilder(
         builder: (ctx, setModalState) => Container(
           padding: EdgeInsets.only(
               bottom: MediaQuery.of(ctx).viewInsets.bottom + 20),
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: AppColors.white,
             borderRadius:
                 BorderRadius.vertical(top: Radius.circular(24)),
           ),
@@ -159,11 +160,11 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
                               ),
                               color: _visibilityOption == opt
                                   ? AppColors.primary
-                                  : Colors.transparent,
+                                  : AppColors.transparent,
                             ),
                             child: _visibilityOption == opt
                                 ? const Icon(Icons.check_rounded,
-                                    size: 12, color: Colors.white)
+                                    size: 12, color: AppColors.white)
                                 : null,
                           ),
                           const SizedBox(width: 10),
@@ -211,12 +212,10 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
                       _expiryCtrl.clear();
                       _credIdCtrl.clear();
                       Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Certification added!',
-                              style: GoogleFonts.poppins()),
-                          backgroundColor: AppColors.success,
-                        ),
+                      AppSnackBar.show(
+                        context,
+                        message: 'Certification added!',
+                        type: AppSnackBarType.success,
                       );
                     }
                   },
@@ -239,10 +238,10 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddCertSheet,
         backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.add_rounded, color: Colors.white),
+        icon: const Icon(Icons.add_rounded, color: AppColors.white),
         label: Text('Add Cert',
             style: GoogleFonts.poppins(
-                color: Colors.white, fontWeight: FontWeight.w600)),
+                color: AppColors.white, fontWeight: FontWeight.w600)),
       ),
       body: CustomScrollView(
         slivers: [
@@ -252,13 +251,13 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
             leading: Navigator.of(context).canPop()
                 ? IconButton(
                     icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                        color: Colors.white),
+                        color: AppColors.white),
                     onPressed: () => Navigator.pop(context),
                   )
                 : null,
             title: Text('Certifications',
                 style: GoogleFonts.poppins(
-                    color: Colors.white, fontWeight: FontWeight.w600)),
+                    color: AppColors.white, fontWeight: FontWeight.w600)),
             flexibleSpace: Container(
                 decoration: const BoxDecoration(
                     gradient: AppColors.primaryGradient)),
@@ -285,7 +284,7 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
                           ),
                           child: const Icon(
                               Icons.workspace_premium_rounded,
-                              color: Colors.white,
+                              color: AppColors.white,
                               size: 28),
                         ),
                         const SizedBox(width: 14),
@@ -323,7 +322,7 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                             color: isVerified
@@ -331,7 +330,7 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
                                 : AppColors.warning.withValues(alpha: 0.3)),
                         boxShadow: [
                           BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.04),
+                              color: AppColors.black.withValues(alpha: 0.04),
                               blurRadius: 8,
                               offset: const Offset(0, 3))
                         ],
@@ -346,12 +345,12 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
                                 height: 46,
                                 decoration: BoxDecoration(
                                   color:
-                                      Colors.teal.withValues(alpha: 0.12),
+                                      AppColors.teal.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: const Icon(
                                     Icons.workspace_premium_rounded,
-                                    color: Colors.teal,
+                                    color: AppColors.teal,
                                     size: 24),
                               ),
                               const SizedBox(width: 12),
@@ -482,3 +481,4 @@ class _FormField extends StatelessWidget {
     );
   }
 }
+

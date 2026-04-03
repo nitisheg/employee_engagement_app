@@ -56,7 +56,7 @@ class GamesHubScreen extends StatelessWidget {
                 ? IconButton(
                     icon: const Icon(
                       Icons.arrow_back_ios_new_rounded,
-                      color: Colors.white,
+                      color: AppColors.white,
                     ),
                     onPressed: () => Navigator.pop(context),
                   )
@@ -75,7 +75,7 @@ class GamesHubScreen extends StatelessWidget {
                         Text(
                           'Games Hub 🎮',
                           style: GoogleFonts.poppins(
-                            color: Colors.white,
+                            color: AppColors.white,
                             fontSize: 26,
                             fontWeight: FontWeight.w800,
                           ),
@@ -83,7 +83,7 @@ class GamesHubScreen extends StatelessWidget {
                         Text(
                           'Play, compete & earn points',
                           style: GoogleFonts.poppins(
-                            color: Colors.white.withValues(alpha: 0.85),
+                            color: AppColors.white.withValues(alpha: 0.85),
                             fontSize: 13,
                           ),
                         ),
@@ -225,7 +225,7 @@ class GamesHubScreen extends StatelessWidget {
                                           vertical: 4,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: Colors.white.withValues(
+                                          color: AppColors.white.withValues(
                                             alpha: 0.25,
                                           ),
                                           borderRadius: BorderRadius.circular(
@@ -235,7 +235,7 @@ class GamesHubScreen extends StatelessWidget {
                                         child: Text(
                                           'FEATURED',
                                           style: GoogleFonts.poppins(
-                                            color: Colors.white,
+                                            color: AppColors.white,
                                             fontSize: 10,
                                             fontWeight: FontWeight.w700,
                                             letterSpacing: 1.2,
@@ -246,7 +246,7 @@ class GamesHubScreen extends StatelessWidget {
                                       Text(
                                         'Sudoku Challenge',
                                         style: GoogleFonts.poppins(
-                                          color: Colors.white,
+                                          color: AppColors.white,
                                           fontSize: 20,
                                           fontWeight: FontWeight.w800,
                                         ),
@@ -254,7 +254,7 @@ class GamesHubScreen extends StatelessWidget {
                                       Text(
                                         'Earn up to 200 pts',
                                         style: GoogleFonts.poppins(
-                                          color: Colors.white.withValues(
+                                          color: AppColors.white.withValues(
                                             alpha: 0.85,
                                           ),
                                           fontSize: 12,
@@ -267,7 +267,7 @@ class GamesHubScreen extends StatelessWidget {
                                           vertical: 8,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: Colors.white,
+                                          color: AppColors.white,
                                           borderRadius: BorderRadius.circular(
                                             10,
                                           ),
@@ -286,7 +286,7 @@ class GamesHubScreen extends StatelessWidget {
                                 ),
                                 const Icon(
                                   Icons.grid_on_rounded,
-                                  color: Colors.white,
+                                  color: AppColors.white,
                                   size: 80,
                                 ),
                               ],
@@ -363,11 +363,11 @@ class GamesHubScreen extends StatelessWidget {
                             child: Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: AppColors.white,
                                 borderRadius: BorderRadius.circular(18),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.06),
+                                    color: AppColors.black.withValues(alpha: 0.06),
                                     blurRadius: 10,
                                     offset: const Offset(0, 3),
                                   ),
@@ -448,3 +448,4 @@ class GamesHubScreen extends StatelessWidget {
     );
   }
 }
+

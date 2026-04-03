@@ -190,19 +190,19 @@ class _QuizScreenState extends State<QuizScreen>
   }
 
   Color _optionColor(int index) {
-    if (!_answered) return Colors.white;
+    if (!_answered) return AppColors.white;
     if (_apiMode) {
       // In API mode: only highlight selected, no green/red until result
       return index == _selectedAnswer
           ? AppColors.primary.withValues(alpha: 0.1)
-          : Colors.white;
+          : AppColors.white;
     }
     final q = _questions[_currentIndex];
     if (index == q.correctIndex) {
       return AppColors.success.withValues(alpha: 0.15);
     }
     if (index == _selectedAnswer) return Colors.red.withValues(alpha: 0.12);
-    return Colors.white;
+    return AppColors.white;
   }
 
   Color _optionBorderColor(int index) {
@@ -214,7 +214,7 @@ class _QuizScreenState extends State<QuizScreen>
     }
     final q = _questions[_currentIndex];
     if (index == q.correctIndex) return AppColors.success;
-    if (index == _selectedAnswer) return Colors.redAccent;
+    if (index == _selectedAnswer) return AppColors.errorAccent;
     return Colors.grey.shade200;
   }
 
@@ -244,13 +244,13 @@ class _QuizScreenState extends State<QuizScreen>
         appBar: AppBar(
           backgroundColor: AppColors.primary,
           leading: IconButton(
-            icon: const Icon(Icons.close_rounded, color: Colors.white),
+            icon: const Icon(Icons.close_rounded, color: AppColors.white),
             onPressed: () => Navigator.pop(context),
           ),
           title: Text(
             'Question ${_currentIndex + 1} of ${_questions.length}',
             style: GoogleFonts.poppins(
-              color: Colors.white,
+              color: AppColors.white,
               fontWeight: FontWeight.w600,
               fontSize: 16,
             ),
@@ -300,12 +300,12 @@ class _QuizScreenState extends State<QuizScreen>
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
                         color: _timeLeft <= 10
-                            ? Colors.redAccent
+                            ? AppColors.errorAccent
                             : AppColors.primary,
                       ),
                     ),
                     progressColor: _timeLeft <= 10
-                        ? Colors.redAccent
+                        ? AppColors.errorAccent
                         : AppColors.primary,
                     backgroundColor: AppColors.primary.withValues(alpha: 0.15),
                   ),
@@ -351,7 +351,7 @@ class _QuizScreenState extends State<QuizScreen>
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
+                          color: AppColors.black.withValues(alpha: 0.04),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -379,7 +379,7 @@ class _QuizScreenState extends State<QuizScreen>
                                     size: 16,
                                     color: i == q.correctIndex
                                         ? AppColors.success
-                                        : Colors.redAccent,
+                                        : AppColors.errorAccent,
                                   )
                                 : Text(
                                     String.fromCharCode(65 + i),
@@ -556,3 +556,4 @@ class _QuizScreenState extends State<QuizScreen>
     );
   }
 }
+

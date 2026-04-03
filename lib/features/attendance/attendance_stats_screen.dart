@@ -38,7 +38,7 @@ class _AttendanceStatsScreenState extends State<AttendanceStatsScreen> {
               title: const Text('Attendance Statistics'),
               centerTitle: true,
               backgroundColor: AppColors.primary,
-              surfaceTintColor: Colors.white,
+              surfaceTintColor: AppColors.white,
               elevation: 0,
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(1),
@@ -373,3 +373,4 @@ class _AttendanceStatsScreenState extends State<AttendanceStatsScreen> {
     );
   }
 }
+

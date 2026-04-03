@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/app_snackbar.dart';
 import '../../core/widgets/common_widgets.dart';
 import '../../models/quiz_model.dart';
 import '../../providers/quiz_provider.dart';
@@ -102,10 +103,10 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
 
     if (unanswered.isNotEmpty) {
       provider.selectAnswer(unanswered.first.id, -1);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Time up: recording unanswered question.'),
-        ),
+      AppSnackBar.show(
+        context,
+        message: 'Time up: recording unanswered question.',
+        type: AppSnackBarType.warning,
       );
 
       // continue countdown until full quiz time is done
@@ -155,11 +156,10 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
       if (success && provider.lastResult != null) {
         _showResultDialog(provider.lastResult!);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(provider.errorMessage ?? 'Failed to submit quiz'),
-            backgroundColor: AppColors.error,
-          ),
+        AppSnackBar.show(
+          context,
+          message: provider.errorMessage ?? 'Failed to submit quiz',
+          type: AppSnackBarType.error,
         );
       }
     }
@@ -194,9 +194,6 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
     final resolvedIncorrect = resolvedTotal > resolvedCorrect
         ? resolvedTotal - resolvedCorrect
         : 0;
-    final resolvedPoints = result.pointsEarned > 0
-        ? result.pointsEarned
-        : result.scoredPoints;
     final progressValue = resolvedTotal > 0
         ? (resolvedCorrect / resolvedTotal).clamp(0.0, 1.0)
         : 0.0;
@@ -403,7 +400,7 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
                     : isPassed
                     ? AppColors.warning
                     : AppColors.error,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.white,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -442,13 +439,13 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
             style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
           ),
           backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.white,
           actions: [
             Container(
               margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
+                color: AppColors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
@@ -456,13 +453,13 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
                   const Icon(
                     Icons.timer_rounded,
                     size: 16,
-                    color: Colors.white,
+                    color: AppColors.white,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     '$_timeLeft',
                     style: GoogleFonts.poppins(
-                      color: Colors.white,
+                      color: AppColors.white,
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
                     ),
@@ -628,7 +625,7 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
                                           ),
                                           color: isSelected
                                               ? AppColors.primary.withOpacity(0.1)
-                                              : Colors.white,
+                                              : AppColors.white,
                                         ),
                                         child: Row(
                                           children: [
@@ -744,3 +741,4 @@ class _ResultStatItem extends StatelessWidget {
     );
   }
 }
+

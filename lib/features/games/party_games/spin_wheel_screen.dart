@@ -124,7 +124,7 @@ class _SpinWheelScreenState extends State<SpinWheelScreen>
               ),
               child: Text('Awesome!',
                   style: GoogleFonts.poppins(
-                      color: Colors.white, fontWeight: FontWeight.w600)),
+                      color: AppColors.white, fontWeight: FontWeight.w600)),
             ),
           ],
         ),
@@ -137,15 +137,15 @@ class _SpinWheelScreenState extends State<SpinWheelScreen>
     return Scaffold(
       backgroundColor: const Color(0xFF1A0A2E),
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.white),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text('Spin Wheel',
             style: GoogleFonts.poppins(
-                color: Colors.white, fontWeight: FontWeight.w700)),
+                color: AppColors.white, fontWeight: FontWeight.w700)),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -155,13 +155,13 @@ class _SpinWheelScreenState extends State<SpinWheelScreen>
           const SizedBox(height: 16),
           Text('Spin for a prize!',
               style: GoogleFonts.poppins(
-                  color: Colors.white.withValues(alpha: 0.7),
+                  color: AppColors.white.withValues(alpha: 0.7),
                   fontSize: 14)),
           const SizedBox(height: 24),
 
           // Pointer arrow
           const Icon(Icons.arrow_drop_down_rounded,
-              color: Colors.white, size: 36),
+              color: AppColors.white, size: 36),
 
           // Wheel
           Expanded(
@@ -189,7 +189,7 @@ class _SpinWheelScreenState extends State<SpinWheelScreen>
           if (_result != null)
             Text('Result: $_result',
                 style: GoogleFonts.poppins(
-                    color: Colors.white,
+                    color: AppColors.white,
                     fontWeight: FontWeight.w700,
                     fontSize: 16))
                 .animate()
@@ -229,7 +229,7 @@ class _SpinWheelScreenState extends State<SpinWheelScreen>
                   child: Text(
                     _spinning ? 'Spinning...' : 'SPIN 🎰',
                     style: GoogleFonts.poppins(
-                        color: Colors.white,
+                        color: AppColors.white,
                         fontWeight: FontWeight.w800,
                         fontSize: 18,
                         letterSpacing: 1.2),
@@ -259,7 +259,7 @@ class _WheelPainter extends CustomPainter {
     final paint = Paint()..style = PaintingStyle.fill;
     final borderPaint = Paint()
       ..style = PaintingStyle.stroke
-      ..color = Colors.white
+      ..color = AppColors.white
       ..strokeWidth = 2;
 
     for (int i = 0; i < segments.length; i++) {
@@ -288,7 +288,7 @@ class _WheelPainter extends CustomPainter {
         text: TextSpan(
           text: segments[i],
           style: const TextStyle(
-            color: Colors.white,
+            color: AppColors.white,
             fontSize: 11,
             fontWeight: FontWeight.w700,
           ),
@@ -305,7 +305,7 @@ class _WheelPainter extends CustomPainter {
 
     // Center circle
     final centerPaint = Paint()
-      ..color = Colors.white
+      ..color = AppColors.white
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, 20, centerPaint);
     final centerBorder = Paint()
@@ -318,3 +318,4 @@ class _WheelPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/app_snackbar.dart';
 import '../../core/widgets/common_widgets.dart';
 
 class _Reward {
@@ -105,13 +106,10 @@ class _RewardsScreenState extends State<RewardsScreen>
                     setState(
                         () => _availablePoints -= reward.points);
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                            '${reward.name} redeemed successfully!',
-                            style: GoogleFonts.poppins()),
-                        backgroundColor: AppColors.success,
-                      ),
+                    AppSnackBar.show(
+                      context,
+                      message: '${reward.name} redeemed successfully!',
+                      type: AppSnackBarType.success,
                     );
                   }
                 : null,
@@ -122,7 +120,7 @@ class _RewardsScreenState extends State<RewardsScreen>
             ),
             child: Text('Confirm',
                 style: GoogleFonts.poppins(
-                    color: Colors.white, fontWeight: FontWeight.w600)),
+                    color: AppColors.white, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -150,14 +148,14 @@ class _RewardsScreenState extends State<RewardsScreen>
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
                             icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                                color: Colors.white),
+                                color: AppColors.white),
                             onPressed: () => Navigator.pop(context),
                           ),
                         if (Navigator.of(context).canPop())
                           const SizedBox(width: 8),
                         Text('Rewards Store',
                             style: GoogleFonts.poppins(
-                                color: Colors.white,
+                                color: AppColors.white,
                                 fontSize: 22,
                                 fontWeight: FontWeight.w700)),
                         const Spacer(),
@@ -165,7 +163,7 @@ class _RewardsScreenState extends State<RewardsScreen>
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: AppColors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Row(
@@ -175,7 +173,7 @@ class _RewardsScreenState extends State<RewardsScreen>
                               const SizedBox(width: 4),
                               Text('$_availablePoints pts',
                                   style: GoogleFonts.poppins(
-                                      color: Colors.white,
+                                      color: AppColors.white,
                                       fontWeight: FontWeight.w700,
                                       fontSize: 13)),
                             ],
@@ -189,10 +187,10 @@ class _RewardsScreenState extends State<RewardsScreen>
                     controller: _tabController,
                     isScrollable: true,
                     tabAlignment: TabAlignment.start,
-                    indicatorColor: Colors.white,
+                    indicatorColor: AppColors.white,
                     indicatorWeight: 3,
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.white.withValues(alpha: 0.6),
+                    labelColor: AppColors.white,
+                    unselectedLabelColor: AppColors.white.withValues(alpha: 0.6),
                     labelStyle: GoogleFonts.poppins(
                         fontSize: 13, fontWeight: FontWeight.w600),
                     tabs: const [
@@ -277,11 +275,11 @@ class _RewardsGrid extends StatelessWidget {
                   final canAfford = userPoints >= r.points;
                   return Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.white,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.06),
+                            color: AppColors.black.withValues(alpha: 0.06),
                             blurRadius: 10,
                             offset: const Offset(0, 3))
                       ],
@@ -329,7 +327,7 @@ class _RewardsGrid extends StatelessWidget {
                             ),
                             child: Text('Redeem',
                                 style: GoogleFonts.poppins(
-                                    color: Colors.white,
+                                    color: AppColors.white,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 12)),
                           ),
@@ -429,9 +427,10 @@ class _RedemptionItem extends StatelessWidget {
               style: GoogleFonts.poppins(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: Colors.redAccent)),
+                  color: AppColors.errorAccent)),
         ],
       ),
     );
   }
 }
+

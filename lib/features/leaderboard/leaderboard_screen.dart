@@ -129,7 +129,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                         Text(
                           'Leaderboard',
                           style: GoogleFonts.poppins(
-                            color: Colors.white,
+                            color: AppColors.white,
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
                           ),
@@ -148,10 +148,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                     controller: _tabController,
                     isScrollable: true,
                     tabAlignment: TabAlignment.start,
-                    indicatorColor: Colors.white,
+                    indicatorColor: AppColors.white,
                     indicatorWeight: 3,
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.white.withValues(alpha: 0.6),
+                    labelColor: AppColors.white,
+                    unselectedLabelColor: AppColors.white.withValues(alpha: 0.6),
                     labelStyle: GoogleFonts.poppins(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -275,10 +275,10 @@ class _LeaderboardList extends StatelessWidget {
         Container(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.white,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
+                color: AppColors.black.withValues(alpha: 0.08),
                 blurRadius: 12,
                 offset: const Offset(0, -4),
               ),
@@ -296,14 +296,14 @@ class _LeaderboardList extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
+                    color: AppColors.white.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Center(
                     child: Text(
                       userEntry?.initials ?? 'U',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.white,
                         fontWeight: FontWeight.w700,
                         fontSize: 14,
                       ),
@@ -324,7 +324,7 @@ class _LeaderboardList extends StatelessWidget {
                           return Text(
                             nameText,
                             style: GoogleFonts.poppins(
-                              color: Colors.white,
+                              color: AppColors.white,
                               fontWeight: FontWeight.w700,
                               fontSize: 14,
                             ),
@@ -335,7 +335,7 @@ class _LeaderboardList extends StatelessWidget {
                         Text(
                           userEntry!.department,
                           style: GoogleFonts.poppins(
-                            color: Colors.white.withValues(alpha: 0.8),
+                            color: AppColors.white.withValues(alpha: 0.8),
                             fontSize: 11,
                           ),
                         ),
@@ -348,7 +348,7 @@ class _LeaderboardList extends StatelessWidget {
                     Text(
                       'Rank #${userEntry?.rank ?? employees.first.rank}',
                       style: GoogleFonts.poppins(
-                        color: Colors.white,
+                        color: AppColors.white,
                         fontWeight: FontWeight.w700,
                         fontSize: 16,
                       ),
@@ -356,7 +356,7 @@ class _LeaderboardList extends StatelessWidget {
                     Text(
                       '${userEntry?.points ?? employees.first.points} pts',
                       style: GoogleFonts.poppins(
-                        color: Colors.white.withValues(alpha: 0.8),
+                        color: AppColors.white.withValues(alpha: 0.8),
                         fontSize: 12,
                       ),
                     ),
@@ -453,7 +453,7 @@ class _PodiumColumn extends StatelessWidget {
             child: Text(
               employee.initials,
               style: const TextStyle(
-                color: Colors.white,
+                color: AppColors.white,
                 fontWeight: FontWeight.w700,
                 fontSize: 16,
               ),
@@ -522,11 +522,11 @@ class _RankRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: AppColors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -556,7 +556,7 @@ class _RankRow extends StatelessWidget {
               child: Text(
                 employee.initials,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: AppColors.white,
                   fontWeight: FontWeight.w700,
                   fontSize: 14,
                 ),
@@ -609,7 +609,7 @@ class _RankRow extends StatelessWidget {
                     color: employee.change > 0
                         ? AppColors.success
                         : employee.change < 0
-                        ? Colors.redAccent
+                        ? AppColors.errorAccent
                         : AppColors.textSecondary,
                   ),
                   if (employee.change != 0)
@@ -619,7 +619,7 @@ class _RankRow extends StatelessWidget {
                         fontSize: 10,
                         color: employee.change > 0
                             ? AppColors.success
-                            : Colors.redAccent,
+                            : AppColors.errorAccent,
                       ),
                     ),
                 ],
@@ -685,11 +685,11 @@ class _TeamsTab extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.white,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
+                color: AppColors.black.withValues(alpha: 0.05),
                 blurRadius: 8,
                 offset: const Offset(0, 3),
               ),
@@ -746,3 +746,4 @@ class _TeamsTab extends StatelessWidget {
     );
   }
 }
+

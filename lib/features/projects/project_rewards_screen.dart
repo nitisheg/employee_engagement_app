@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/app_snackbar.dart';
 import '../../core/widgets/common_widgets.dart';
 
 class ProjectRewardsScreen extends StatefulWidget {
@@ -111,12 +112,10 @@ class _ProjectRewardsScreenState extends State<ProjectRewardsScreen>
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Volunteered for $projectName!',
-                      style: GoogleFonts.poppins()),
-                  backgroundColor: AppColors.success,
-                ),
+              AppSnackBar.show(
+                context,
+                message: 'Volunteered for $projectName!',
+                type: AppSnackBarType.success,
               );
             },
             style: ElevatedButton.styleFrom(
@@ -126,7 +125,7 @@ class _ProjectRewardsScreenState extends State<ProjectRewardsScreen>
             ),
             child: Text('Volunteer',
                 style: GoogleFonts.poppins(
-                    color: Colors.white, fontWeight: FontWeight.w600)),
+                    color: AppColors.white, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -152,7 +151,7 @@ class _ProjectRewardsScreenState extends State<ProjectRewardsScreen>
                         if (Navigator.of(context).canPop())
                           IconButton(
                             icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                                color: Colors.white),
+                                color: AppColors.white),
                             onPressed: () => Navigator.pop(context),
                           ),
                         Expanded(
@@ -161,14 +160,14 @@ class _ProjectRewardsScreenState extends State<ProjectRewardsScreen>
                             children: [
                               Text('Project Rewards',
                                   style: GoogleFonts.poppins(
-                                      color: Colors.white,
+                                      color: AppColors.white,
                                       fontSize: 22,
                                       fontWeight: FontWeight.w700)),
                               Text(
                                   'Volunteer for projects to earn bonus rewards',
                                   style: GoogleFonts.poppins(
                                       color:
-                                          Colors.white.withValues(alpha: 0.8),
+                                          AppColors.white.withValues(alpha: 0.8),
                                       fontSize: 12)),
                             ],
                           ),
@@ -179,11 +178,11 @@ class _ProjectRewardsScreenState extends State<ProjectRewardsScreen>
                   const SizedBox(height: 12),
                   TabBar(
                     controller: _tabController,
-                    indicatorColor: Colors.white,
+                    indicatorColor: AppColors.white,
                     indicatorWeight: 3,
-                    labelColor: Colors.white,
+                    labelColor: AppColors.white,
                     unselectedLabelColor:
-                        Colors.white.withValues(alpha: 0.6),
+                        AppColors.white.withValues(alpha: 0.6),
                     labelStyle: GoogleFonts.poppins(
                         fontSize: 14, fontWeight: FontWeight.w600),
                     tabs: const [
@@ -208,11 +207,11 @@ class _ProjectRewardsScreenState extends State<ProjectRewardsScreen>
                     return Container(
                       margin: const EdgeInsets.only(bottom: 14),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.white,
                         borderRadius: BorderRadius.circular(18),
                         boxShadow: [
                           BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.06),
+                              color: AppColors.black.withValues(alpha: 0.06),
                               blurRadius: 10,
                               offset: const Offset(0, 3))
                         ],
@@ -345,7 +344,7 @@ class _ProjectRewardsScreenState extends State<ProjectRewardsScreen>
                                     child: Center(
                                       child: Text('Volunteer',
                                           style: GoogleFonts.poppins(
-                                              color: Colors.white,
+                                              color: AppColors.white,
                                               fontWeight: FontWeight.w600,
                                               fontSize: 14)),
                                     ),
@@ -372,14 +371,14 @@ class _ProjectRewardsScreenState extends State<ProjectRewardsScreen>
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                             color: (p['color'] as Color)
                                 .withValues(alpha: 0.3)),
                         boxShadow: [
                           BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
+                              color: AppColors.black.withValues(alpha: 0.05),
                               blurRadius: 8,
                               offset: const Offset(0, 3))
                         ],
@@ -466,3 +465,4 @@ class _ProjectRewardsScreenState extends State<ProjectRewardsScreen>
     );
   }
 }
+

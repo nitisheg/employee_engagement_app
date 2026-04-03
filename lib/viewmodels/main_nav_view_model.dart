@@ -64,3 +64,4 @@ class MainNavViewModel extends BaseViewModel {
     ),
   ];
 }
+

@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/app_snackbar.dart';
 import '../../core/widgets/common_widgets.dart';
 
 class ChallengesScreen extends StatefulWidget {
@@ -49,7 +50,7 @@ class _ChallengesScreenState extends State<ChallengesScreen>
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
                             icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                                color: Colors.white),
+                                color: AppColors.white),
                             onPressed: () => Navigator.pop(context),
                           ),
                         if (Navigator.of(context).canPop())
@@ -57,22 +58,22 @@ class _ChallengesScreenState extends State<ChallengesScreen>
                         Expanded(
                           child: Text('Challenges',
                               style: GoogleFonts.poppins(
-                                  color: Colors.white,
+                                  color: AppColors.white,
                                   fontSize: 22,
                                   fontWeight: FontWeight.w700)),
                         ),
                         const Icon(Icons.flag_rounded,
-                            color: Colors.white, size: 26),
+                            color: AppColors.white, size: 26),
                       ],
                     ),
                   ),
                   const SizedBox(height: 12),
                   TabBar(
                     controller: _tabController,
-                    indicatorColor: Colors.white,
+                    indicatorColor: AppColors.white,
                     indicatorWeight: 3,
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.white.withValues(alpha: 0.6),
+                    labelColor: AppColors.white,
+                    unselectedLabelColor: AppColors.white.withValues(alpha: 0.6),
                     labelStyle: GoogleFonts.poppins(
                         fontSize: 14, fontWeight: FontWeight.w600),
                     tabs: const [
@@ -149,7 +150,7 @@ class _ActiveTab extends StatelessWidget {
           type: 'Individual',
           typeColor: AppColors.primary,
           icon: Icons.code_rounded,
-          color: Colors.deepPurple,
+          color: AppColors.violet,
           current: 3,
           target: 10,
           unit: 'reviews',
@@ -328,11 +329,11 @@ class _AvailableTab extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.white,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
+                  color: AppColors.black.withValues(alpha: 0.05),
                   blurRadius: 8,
                   offset: const Offset(0, 3))
             ],
@@ -384,12 +385,10 @@ class _AvailableTab extends StatelessWidget {
                   const SizedBox(height: 8),
                   GestureDetector(
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Joined ${c['title']}!',
-                              style: GoogleFonts.poppins()),
-                          backgroundColor: AppColors.success,
-                        ),
+                      AppSnackBar.show(
+                        context,
+                        message: 'Joined ${c['title']}!',
+                        type: AppSnackBarType.success,
                       );
                     },
                     child: Container(
@@ -401,7 +400,7 @@ class _AvailableTab extends StatelessWidget {
                       ),
                       child: Text('Join',
                           style: GoogleFonts.poppins(
-                              color: Colors.white,
+                              color: AppColors.white,
                               fontWeight: FontWeight.w600,
                               fontSize: 12)),
                     ),
@@ -458,13 +457,13 @@ class _CompletedTab extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
                 color: AppColors.success.withValues(alpha: 0.3)),
             boxShadow: [
               BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
+                  color: AppColors.black.withValues(alpha: 0.04),
                   blurRadius: 8,
                   offset: const Offset(0, 3))
             ],
@@ -533,3 +532,4 @@ class _CompletedTab extends StatelessWidget {
     );
   }
 }
+

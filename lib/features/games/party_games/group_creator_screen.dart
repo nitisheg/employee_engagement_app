@@ -72,16 +72,16 @@ class _GroupCreatorScreenState extends State<GroupCreatorScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF0A0A2E),
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Colors.white),
+              color: AppColors.white),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text('Group Creator',
             style: GoogleFonts.poppins(
-                color: Colors.white, fontWeight: FontWeight.w700)),
+                color: AppColors.white, fontWeight: FontWeight.w700)),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -95,10 +95,10 @@ class _GroupCreatorScreenState extends State<GroupCreatorScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
+                color: AppColors.white.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.15)),
+                    color: AppColors.white.withValues(alpha: 0.15)),
               ),
               child: Row(
                 children: [
@@ -111,12 +111,12 @@ class _GroupCreatorScreenState extends State<GroupCreatorScreen> {
                       children: [
                         Text('Auto Group Splitter',
                             style: GoogleFonts.poppins(
-                                color: Colors.white,
+                                color: AppColors.white,
                                 fontWeight: FontWeight.w700,
                                 fontSize: 16)),
                         Text('${_names.length} participants',
                             style: GoogleFonts.poppins(
-                                color: Colors.white.withValues(alpha: 0.6),
+                                color: AppColors.white.withValues(alpha: 0.6),
                                 fontSize: 12)),
                       ],
                     ),
@@ -129,7 +129,7 @@ class _GroupCreatorScreenState extends State<GroupCreatorScreen> {
             // Group count selector
             Text('Number of Groups',
                 style: GoogleFonts.poppins(
-                    color: Colors.white,
+                    color: AppColors.white,
                     fontWeight: FontWeight.w600,
                     fontSize: 14)),
             const SizedBox(height: 10),
@@ -153,17 +153,17 @@ class _GroupCreatorScreenState extends State<GroupCreatorScreen> {
                           : null,
                       color: selected
                           ? null
-                          : Colors.white.withValues(alpha: 0.1),
+                          : AppColors.white.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                           color: selected
-                              ? Colors.transparent
-                              : Colors.white.withValues(alpha: 0.2)),
+                              ? AppColors.transparent
+                              : AppColors.white.withValues(alpha: 0.2)),
                     ),
                     child: Center(
                       child: Text('$n',
                           style: GoogleFonts.poppins(
-                              color: Colors.white,
+                              color: AppColors.white,
                               fontWeight: FontWeight.w700,
                               fontSize: 16)),
                     ),
@@ -176,7 +176,7 @@ class _GroupCreatorScreenState extends State<GroupCreatorScreen> {
             // Add participant
             Text('Participants',
                 style: GoogleFonts.poppins(
-                    color: Colors.white,
+                    color: AppColors.white,
                     fontWeight: FontWeight.w600,
                     fontSize: 14)),
             const SizedBox(height: 10),
@@ -185,14 +185,14 @@ class _GroupCreatorScreenState extends State<GroupCreatorScreen> {
                 Expanded(
                   child: TextField(
                     controller: _nameCtrl,
-                    style: GoogleFonts.poppins(color: Colors.white),
+                    style: GoogleFonts.poppins(color: AppColors.white),
                     decoration: InputDecoration(
                       hintText: 'Add participant',
                       hintStyle: GoogleFonts.poppins(
-                          color: Colors.white.withValues(alpha: 0.4),
+                          color: AppColors.white.withValues(alpha: 0.4),
                           fontSize: 13),
                       filled: true,
-                      fillColor: Colors.white.withValues(alpha: 0.08),
+                      fillColor: AppColors.white.withValues(alpha: 0.08),
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none),
@@ -212,7 +212,7 @@ class _GroupCreatorScreenState extends State<GroupCreatorScreen> {
                         color: AppColors.primary,
                         borderRadius: BorderRadius.circular(12)),
                     child: const Icon(Icons.add_rounded,
-                        color: Colors.white),
+                        color: AppColors.white),
                   ),
                 ),
               ],
@@ -230,25 +230,25 @@ class _GroupCreatorScreenState extends State<GroupCreatorScreen> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.1),
+                            color: AppColors.white.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                                 color:
-                                    Colors.white.withValues(alpha: 0.25)),
+                                    AppColors.white.withValues(alpha: 0.25)),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(n,
                                   style: GoogleFonts.poppins(
-                                      color: Colors.white,
+                                      color: AppColors.white,
                                       fontSize: 12)),
                               const SizedBox(width: 4),
                               GestureDetector(
                                 onTap: () => _removeName(n),
                                 child: Icon(Icons.close_rounded,
                                     size: 14,
-                                    color: Colors.white
+                                    color: AppColors.white
                                         .withValues(alpha: 0.6)),
                               ),
                             ],
@@ -278,7 +278,7 @@ class _GroupCreatorScreenState extends State<GroupCreatorScreen> {
                 child: Center(
                   child: Text('Generate Groups 🎲',
                       style: GoogleFonts.poppins(
-                          color: Colors.white,
+                          color: AppColors.white,
                           fontWeight: FontWeight.w700,
                           fontSize: 16)),
                 ),
@@ -290,7 +290,7 @@ class _GroupCreatorScreenState extends State<GroupCreatorScreen> {
             if (_generated) ...[
               Text('Generated Groups',
                       style: GoogleFonts.poppins(
-                          color: Colors.white,
+                          color: AppColors.white,
                           fontWeight: FontWeight.w700,
                           fontSize: 16))
                   .animate()
@@ -323,7 +323,7 @@ class _GroupCreatorScreenState extends State<GroupCreatorScreen> {
                             child: Center(
                               child: Text('${idx + 1}',
                                   style: const TextStyle(
-                                      color: Colors.white,
+                                      color: AppColors.white,
                                       fontWeight: FontWeight.w800,
                                       fontSize: 14)),
                             ),
@@ -356,7 +356,7 @@ class _GroupCreatorScreenState extends State<GroupCreatorScreen> {
                                   ),
                                   child: Text(name,
                                       style: GoogleFonts.poppins(
-                                          color: Colors.white,
+                                          color: AppColors.white,
                                           fontSize: 12,
                                           fontWeight: FontWeight.w500)),
                                 ))
@@ -379,3 +379,4 @@ class _GroupCreatorScreenState extends State<GroupCreatorScreen> {
     );
   }
 }
+

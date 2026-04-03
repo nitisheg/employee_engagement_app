@@ -67,7 +67,7 @@ class _QuizListScreenState extends State<QuizListScreen>
                 ? IconButton(
                     icon: const Icon(
                       Icons.arrow_back_ios_new_rounded,
-                      color: Colors.white,
+                      color: AppColors.white,
                     ),
                     onPressed: () => Navigator.pop(context),
                   )
@@ -86,7 +86,7 @@ class _QuizListScreenState extends State<QuizListScreen>
                         Text(
                           'Quizzes 📝',
                           style: GoogleFonts.poppins(
-                            color: Colors.white,
+                            color: AppColors.white,
                             fontSize: 26,
                             fontWeight: FontWeight.w800,
                           ),
@@ -94,7 +94,7 @@ class _QuizListScreenState extends State<QuizListScreen>
                         Text(
                           'Test your knowledge & earn points',
                           style: GoogleFonts.poppins(
-                            color: Colors.white.withValues(alpha: 0.85),
+                            color: AppColors.white.withValues(alpha: 0.85),
                             fontSize: 13,
                           ),
                         ),
@@ -106,7 +106,7 @@ class _QuizListScreenState extends State<QuizListScreen>
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.history_rounded, color: Colors.white),
+                icon: const Icon(Icons.history_rounded, color: AppColors.white),
                 onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const QuizResultsScreen()),
@@ -123,10 +123,10 @@ class _QuizListScreenState extends State<QuizListScreen>
                   ),
                   child: TabBar(
                     controller: _tabController,
-                    indicatorColor: Colors.white,
+                    indicatorColor: AppColors.white,
                     indicatorWeight: 3,
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.white.withValues(alpha: 0.7),
+                    labelColor: AppColors.white,
+                    unselectedLabelColor: AppColors.white.withValues(alpha: 0.7),
                     tabs: const [
                       Tab(text: 'All'),
                       Tab(text: 'Live'),
@@ -262,7 +262,7 @@ class _QuizCard extends StatelessWidget {
                           isCompleted
                               ? Icons.check_rounded
                               : Icons.quiz_rounded,
-                          color: isCompleted ? AppColors.success : Colors.white,
+                          color: isCompleted ? AppColors.success : AppColors.white,
                           size: 24,
                         ),
                       ),
@@ -427,3 +427,4 @@ class _InfoChip extends StatelessWidget {
     );
   }
 }
+

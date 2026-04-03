@@ -97,7 +97,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               title: const Text('Attendance'),
               centerTitle: true,
               backgroundColor: AppColors.primary,
-              surfaceTintColor: Colors.white,
+              surfaceTintColor: AppColors.white,
               elevation: 0,
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(1),
@@ -267,7 +267,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                         strokeWidth: 2,
                                         valueColor:
                                             AlwaysStoppedAnimation<Color>(
-                                              Colors.white,
+                                              AppColors.white,
                                             ),
                                       ),
                                     )
@@ -382,7 +382,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                             strokeWidth: 2,
                                             valueColor:
                                                 AlwaysStoppedAnimation<Color>(
-                                                  Colors.white,
+                                                  AppColors.white,
                                                 ),
                                           ),
                                         )
@@ -531,15 +531,15 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.1),
+                            color: AppColors.info.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: Colors.blue.withOpacity(0.3),
+                              color: AppColors.info.withOpacity(0.3),
                             ),
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.info, color: Colors.blue.shade700),
+                              const Icon(Icons.info, color: Color(0xFF1976D2)),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
@@ -549,14 +549,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                       'Attendance Points',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.blue.shade700,
+                                        color: const Color(0xFF1976D2),
                                       ),
                                     ),
                                     Text(
                                       'Earn points based on your attendance and work duration',
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: Colors.blue.shade600,
+                                        color: const Color(0xFF1E88E5),
                                       ),
                                     ),
                                   ],
@@ -577,3 +577,4 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     );
   }
 }
+

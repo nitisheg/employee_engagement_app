@@ -67,13 +67,11 @@ class ApiClient {
   }
 
   Future<void> saveToken(String token) =>
-      _storage.write(key: SecureStorageService.accessTokenKey, value: token);
+      _storage.saveAccessToken(token);
 
-  Future<void> clearToken() =>
-      _storage.delete(key: SecureStorageService.accessTokenKey);
+    Future<void> clearToken() => _storage.clearAccessToken();
 
-  Future<String?> getToken() =>
-      _storage.read(key: SecureStorageService.accessTokenKey);
+    Future<String?> getToken() => _storage.getAccessToken();
 
   static dynamic _unwrapResponse(dynamic responseData) {
     if (responseData is Map<String, dynamic> &&
@@ -97,8 +95,7 @@ class _AuthInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    final String? token =
-        await _storage.read(key: SecureStorageService.accessTokenKey);
+    final String? token = await _storage.getAccessToken();
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
       AppLogger.debug('AuthInterceptor', 'Token injected for ${options.path}');
@@ -126,10 +123,7 @@ class _AuthInterceptor extends Interceptor {
             (response.data as Map<String, dynamic>?)?['accessToken'] as String?;
 
         if (newToken != null) {
-          await _storage.write(
-            key: SecureStorageService.accessTokenKey,
-            value: newToken,
-          );
+          await _storage.saveAccessToken(newToken);
           AppLogger.success(
             'AuthInterceptor',
             'Token refreshed - retrying ${err.requestOptions.path}',
@@ -153,7 +147,7 @@ class _AuthInterceptor extends Interceptor {
           'Token refresh failed - clearing token',
           e,
         );
-        await _storage.delete(key: SecureStorageService.accessTokenKey);
+        await _storage.clearAccessToken();
       } finally {
         _isRefreshing = false;
       }

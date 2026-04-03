@@ -111,16 +111,16 @@ class _ZipGameScreenState extends State<ZipGameScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF1A0000),
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Colors.white),
+              color: AppColors.white),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text('Zip Game ⚡',
             style: GoogleFonts.poppins(
-                color: Colors.white, fontWeight: FontWeight.w700)),
+                color: AppColors.white, fontWeight: FontWeight.w700)),
         centerTitle: true,
         actions: [
           if (_gameStarted && !_gameOver)
@@ -129,7 +129,7 @@ class _ZipGameScreenState extends State<ZipGameScreen> {
               child: Center(
                 child: Text('$_score pts',
                     style: GoogleFonts.poppins(
-                        color: Colors.redAccent,
+                        color: AppColors.errorAccent,
                         fontWeight: FontWeight.w700,
                         fontSize: 16)),
               ),
@@ -160,7 +160,7 @@ class _ZipGameScreenState extends State<ZipGameScreen> {
             const SizedBox(height: 20),
             Text('Zip Game',
                 style: GoogleFonts.poppins(
-                    color: Colors.white,
+                    color: AppColors.white,
                     fontWeight: FontWeight.w800,
                     fontSize: 32)),
             const SizedBox(height: 12),
@@ -168,7 +168,7 @@ class _ZipGameScreenState extends State<ZipGameScreen> {
               'Answer ${_prompts.length} prompts as fast as possible!\nYou have 5 seconds per question.\nMore time left = more points!',
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
-                  color: Colors.white.withValues(alpha: 0.7),
+                  color: AppColors.white.withValues(alpha: 0.7),
                   fontSize: 14,
                   height: 1.6),
             ),
@@ -194,7 +194,7 @@ class _ZipGameScreenState extends State<ZipGameScreen> {
                 ),
                 child: Text('Start Game ⚡',
                     style: GoogleFonts.poppins(
-                        color: Colors.white,
+                        color: AppColors.white,
                         fontWeight: FontWeight.w800,
                         fontSize: 18)),
               ),
@@ -207,7 +207,7 @@ class _ZipGameScreenState extends State<ZipGameScreen> {
 
   Widget _buildGameScreen() {
     final prompt = _prompts[_currentPromptIndex];
-    final timerColor = _timeLeft <= 2 ? Colors.red : Colors.redAccent;
+    final timerColor = _timeLeft <= 2 ? Colors.red : AppColors.errorAccent;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -220,12 +220,12 @@ class _ZipGameScreenState extends State<ZipGameScreen> {
               Text(
                 'Q ${_currentPromptIndex + 1}/${_prompts.length}',
                 style: GoogleFonts.poppins(
-                    color: Colors.white.withValues(alpha: 0.7),
+                    color: AppColors.white.withValues(alpha: 0.7),
                     fontSize: 14),
               ),
               Text('$_score pts',
                   style: GoogleFonts.poppins(
-                      color: Colors.redAccent,
+                      color: AppColors.errorAccent,
                       fontWeight: FontWeight.w700,
                       fontSize: 14)),
             ],
@@ -235,9 +235,9 @@ class _ZipGameScreenState extends State<ZipGameScreen> {
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
               value: (_currentPromptIndex + 1) / _prompts.length,
-              backgroundColor: Colors.white.withValues(alpha: 0.1),
+              backgroundColor: AppColors.white.withValues(alpha: 0.1),
               valueColor:
-                  const AlwaysStoppedAnimation(Colors.redAccent),
+                  const AlwaysStoppedAnimation(AppColors.errorAccent),
               minHeight: 6,
             ),
           ),
@@ -271,23 +271,23 @@ class _ZipGameScreenState extends State<ZipGameScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
+                color: AppColors.white.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                    color: Colors.redAccent.withValues(alpha: 0.4)),
+                    color: AppColors.errorAccent.withValues(alpha: 0.4)),
               ),
               child: Column(
                 children: [
                   Text(prompt['prompt']!,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(
-                          color: Colors.white,
+                          color: AppColors.white,
                           fontWeight: FontWeight.w800,
                           fontSize: 22)),
                   const SizedBox(height: 6),
                   Text(prompt['example']!,
                       style: GoogleFonts.poppins(
-                          color: Colors.white.withValues(alpha: 0.5),
+                          color: AppColors.white.withValues(alpha: 0.5),
                           fontSize: 13)),
                 ],
               ),
@@ -298,28 +298,28 @@ class _ZipGameScreenState extends State<ZipGameScreen> {
           // Answer input
           TextField(
             controller: _answerCtrl,
-            style: GoogleFonts.poppins(color: Colors.white, fontSize: 18),
+            style: GoogleFonts.poppins(color: AppColors.white, fontSize: 18),
             decoration: InputDecoration(
               hintText: 'Type your answer...',
               hintStyle: GoogleFonts.poppins(
-                  color: Colors.white.withValues(alpha: 0.3),
+                  color: AppColors.white.withValues(alpha: 0.3),
                   fontSize: 16),
               filled: true,
-              fillColor: Colors.white.withValues(alpha: 0.08),
+              fillColor: AppColors.white.withValues(alpha: 0.08),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide: BorderSide(
-                    color: Colors.redAccent.withValues(alpha: 0.4)),
+                    color: AppColors.errorAccent.withValues(alpha: 0.4)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide: BorderSide(
-                    color: Colors.redAccent.withValues(alpha: 0.4)),
+                    color: AppColors.errorAccent.withValues(alpha: 0.4)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide: const BorderSide(
-                    color: Colors.redAccent, width: 2),
+                    color: AppColors.errorAccent, width: 2),
               ),
               contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16, vertical: 14),
@@ -339,15 +339,15 @@ class _ZipGameScreenState extends State<ZipGameScreen> {
                   child: Container(
                     height: 50,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.08),
+                      color: AppColors.white.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.2)),
+                          color: AppColors.white.withValues(alpha: 0.2)),
                     ),
                     child: Center(
                       child: Text('Skip',
                           style: GoogleFonts.poppins(
-                              color: Colors.white.withValues(alpha: 0.7),
+                              color: AppColors.white.withValues(alpha: 0.7),
                               fontWeight: FontWeight.w600)),
                     ),
                   ),
@@ -375,7 +375,7 @@ class _ZipGameScreenState extends State<ZipGameScreen> {
                     child: Center(
                       child: Text('Submit ⚡',
                           style: GoogleFonts.poppins(
-                              color: Colors.white,
+                              color: AppColors.white,
                               fontWeight: FontWeight.w700,
                               fontSize: 15)),
                     ),
@@ -403,25 +403,25 @@ class _ZipGameScreenState extends State<ZipGameScreen> {
             const SizedBox(height: 16),
             Text('Game Over!',
                 style: GoogleFonts.poppins(
-                    color: Colors.white,
+                    color: AppColors.white,
                     fontWeight: FontWeight.w800,
                     fontSize: 28)),
             const SizedBox(height: 8),
             Text('Final Score: $_score pts',
                 style: GoogleFonts.poppins(
-                    color: Colors.redAccent,
+                    color: AppColors.errorAccent,
                     fontWeight: FontWeight.w700,
                     fontSize: 20)),
             Text('$correct / ${_prompts.length} answered',
                 style: GoogleFonts.poppins(
-                    color: Colors.white.withValues(alpha: 0.6),
+                    color: AppColors.white.withValues(alpha: 0.6),
                     fontSize: 14)),
             const SizedBox(height: 24),
             // History
             Container(
               constraints: const BoxConstraints(maxHeight: 250),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.06),
+                color: AppColors.white.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: ListView.builder(
@@ -440,7 +440,7 @@ class _ZipGameScreenState extends State<ZipGameScreen> {
                               : Icons.cancel_rounded,
                           color: item['correct'] == true
                               ? AppColors.success
-                              : Colors.redAccent,
+                              : AppColors.errorAccent,
                           size: 18,
                         ),
                         const SizedBox(width: 8),
@@ -448,7 +448,7 @@ class _ZipGameScreenState extends State<ZipGameScreen> {
                           child: Text(
                             '${item['prompt']}: ${item['answer']}',
                             style: GoogleFonts.poppins(
-                                color: Colors.white.withValues(alpha: 0.8),
+                                color: AppColors.white.withValues(alpha: 0.8),
                                 fontSize: 12),
                           ),
                         ),
@@ -467,15 +467,15 @@ class _ZipGameScreenState extends State<ZipGameScreen> {
                     child: Container(
                       height: 50,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
+                        color: AppColors.white.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.2)),
+                            color: AppColors.white.withValues(alpha: 0.2)),
                       ),
                       child: Center(
                         child: Text('Exit',
                             style: GoogleFonts.poppins(
-                                color: Colors.white,
+                                color: AppColors.white,
                                 fontWeight: FontWeight.w600)),
                       ),
                     ),
@@ -497,7 +497,7 @@ class _ZipGameScreenState extends State<ZipGameScreen> {
                       child: Center(
                         child: Text('Play Again ⚡',
                             style: GoogleFonts.poppins(
-                                color: Colors.white,
+                                color: AppColors.white,
                                 fontWeight: FontWeight.w700)),
                       ),
                     ),
@@ -511,3 +511,4 @@ class _ZipGameScreenState extends State<ZipGameScreen> {
     );
   }
 }
+

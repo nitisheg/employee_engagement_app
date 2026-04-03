@@ -52,13 +52,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           'Notifications',
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.w600,
-            color: Colors.white,
+            color: AppColors.white,
           ),
         ),
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new_rounded,
-            color: Colors.white,
+            color: AppColors.white,
           ),
           onPressed: () => Navigator.pop(context),
         ),
@@ -67,7 +67,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             builder: (context, provider, _) {
               if (provider.notifications.isEmpty) return const SizedBox();
               return PopupMenuButton(
-                icon: const Icon(Icons.more_vert, color: Colors.white),
+                icon: const Icon(Icons.more_vert, color: AppColors.white),
                 itemBuilder: (context) => [
                   PopupMenuItem(
                     onTap: () {
@@ -322,3 +322,4 @@ class _NotificationCard extends StatelessWidget {
     }
   }
 }
+

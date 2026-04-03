@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/app_snackbar.dart';
 import '../../core/widgets/common_widgets.dart';
 import '../../providers/auth_provider.dart';
 import '../main/main_nav_screen.dart';
@@ -64,11 +65,10 @@ class _LoginScreenState extends State<LoginScreen> {
     } else {
       final error =
           context.read<AuthProvider>().errorMessage ?? 'Login failed.';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error, style: GoogleFonts.poppins()),
-          backgroundColor: Colors.redAccent,
-        ),
+      AppSnackBar.show(
+        context,
+        message: error,
+        type: AppSnackBarType.error,
       );
     }
   }
@@ -113,17 +113,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 ctrl.text.trim(),
               );
               if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    ok
-                        ? 'If that email exists, a reset link has been sent.'
-                        : context.read<AuthProvider>().errorMessage ??
-                              'Something went wrong.',
-                    style: GoogleFonts.poppins(),
-                  ),
-                  backgroundColor: ok ? AppColors.success : Colors.redAccent,
-                ),
+              AppSnackBar.show(
+                context,
+                message: ok
+                    ? 'If that email exists, a reset link has been sent.'
+                    : context.read<AuthProvider>().errorMessage ??
+                          'Something went wrong.',
+                type: ok ? AppSnackBarType.success : AppSnackBarType.error,
               );
             },
             style: ElevatedButton.styleFrom(
@@ -135,7 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Text(
               'Send Link',
               style: GoogleFonts.poppins(
-                color: Colors.white,
+                color: AppColors.white,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -175,13 +171,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         width: (size.width * 0.23).clamp(72.0, 100.0),
                         height: (size.width * 0.23).clamp(72.0, 100.0),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: AppColors.white.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           Icons.people_alt_rounded,
                           size: 50,
-                          color: Colors.white,
+                          color: AppColors.white,
                         ),
                       ).animate().scale(
                         duration: 600.ms,
@@ -193,7 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: (size.width * 0.085).clamp(24.0, 36.0),
                               fontWeight: FontWeight.w800,
-                              color: Colors.white,
+                              color: AppColors.white,
                               letterSpacing: 1.2,
                             ),
                           )
@@ -205,7 +201,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             'Employee Engagement Platform',
                             style: GoogleFonts.poppins(
                               fontSize: 14,
-                              color: Colors.white.withValues(alpha: 0.85),
+                              color: AppColors.white.withValues(alpha: 0.85),
                             ),
                           )
                           .animate()
@@ -324,7 +320,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             child: const Center(
                               child: CircularProgressIndicator(
-                                color: Colors.white,
+                                color: AppColors.white,
                                 strokeWidth: 2.5,
                               ),
                             ),
@@ -377,3 +373,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+

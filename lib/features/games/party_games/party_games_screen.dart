@@ -34,7 +34,7 @@ class PartyGamesScreen extends StatelessWidget {
       'title': 'Group Creator',
       'desc': 'Auto-split into random teams',
       'icon': Icons.group_rounded,
-      'color': Colors.blue,
+      'color': AppColors.info,
     },
     {
       'title': 'Zip Game',
@@ -53,10 +53,10 @@ class PartyGamesScreen extends StatelessWidget {
           SliverAppBar(
             pinned: true,
             expandedHeight: 150,
-            backgroundColor: Colors.deepPurple,
+            backgroundColor: AppColors.violet,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                  color: Colors.white),
+                  color: AppColors.white),
               onPressed: () => Navigator.pop(context),
             ),
             flexibleSpace: FlexibleSpaceBar(
@@ -73,7 +73,7 @@ class PartyGamesScreen extends StatelessWidget {
             ),
             title: Text('Party Games 🎉',
                 style: GoogleFonts.poppins(
-                    color: Colors.white, fontWeight: FontWeight.w600)),
+                    color: AppColors.white, fontWeight: FontWeight.w600)),
           ),
 
           SliverPadding(
@@ -114,7 +114,7 @@ class PartyGamesScreen extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.white,
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
@@ -162,7 +162,7 @@ class PartyGamesScreen extends StatelessWidget {
                             ),
                             child: Text('Play Now',
                                 style: GoogleFonts.poppins(
-                                    color: Colors.white,
+                                    color: AppColors.white,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 12)),
                           ),
@@ -183,3 +183,4 @@ class PartyGamesScreen extends StatelessWidget {
     );
   }
 }
+

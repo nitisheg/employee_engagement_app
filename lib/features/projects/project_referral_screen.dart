@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/app_snackbar.dart';
 import '../../core/widgets/common_widgets.dart';
 
 class ProjectReferralScreen extends StatefulWidget {
@@ -47,14 +48,10 @@ class _ProjectReferralScreenState extends State<ProjectReferralScreen> {
 
   void _copyCode() {
     Clipboard.setData(const ClipboardData(text: _referralCode));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Referral code copied!',
-            style: GoogleFonts.poppins()),
-        backgroundColor: AppColors.success,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+    AppSnackBar.show(
+      context,
+      message: 'Referral code copied!',
+      type: AppSnackBarType.success,
     );
   }
 
@@ -81,13 +78,13 @@ class _ProjectReferralScreenState extends State<ProjectReferralScreen> {
             leading: Navigator.of(context).canPop()
                 ? IconButton(
                     icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                        color: Colors.white),
+                        color: AppColors.white),
                     onPressed: () => Navigator.pop(context),
                   )
                 : null,
             title: Text('Referral Rewards',
                 style: GoogleFonts.poppins(
-                    color: Colors.white, fontWeight: FontWeight.w600)),
+                    color: AppColors.white, fontWeight: FontWeight.w600)),
             flexibleSpace: Container(
                 decoration: const BoxDecoration(
                     gradient: AppColors.primaryGradient)),
@@ -145,7 +142,7 @@ class _ProjectReferralScreenState extends State<ProjectReferralScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Icon(Icons.share_rounded,
-                                  color: Colors.white, size: 20),
+                                  color: AppColors.white, size: 20),
                             ),
                             const SizedBox(width: 12),
                             Text('Your Referral Code',
@@ -191,11 +188,11 @@ class _ProjectReferralScreenState extends State<ProjectReferralScreen> {
                                   child: Row(
                                     children: [
                                       const Icon(Icons.copy_rounded,
-                                          color: Colors.white, size: 14),
+                                          color: AppColors.white, size: 14),
                                       const SizedBox(width: 4),
                                       Text('Copy',
                                           style: GoogleFonts.poppins(
-                                              color: Colors.white,
+                                              color: AppColors.white,
                                               fontWeight: FontWeight.w600,
                                               fontSize: 12)),
                                     ],
@@ -232,11 +229,11 @@ class _ProjectReferralScreenState extends State<ProjectReferralScreen> {
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.white,
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
+                              color: AppColors.black.withValues(alpha: 0.05),
                               blurRadius: 8,
                               offset: const Offset(0, 3))
                         ],
@@ -366,11 +363,11 @@ class _SummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: AppColors.black.withValues(alpha: 0.05),
               blurRadius: 8,
               offset: const Offset(0, 3))
         ],
@@ -395,3 +392,4 @@ class _SummaryCard extends StatelessWidget {
     );
   }
 }
+
