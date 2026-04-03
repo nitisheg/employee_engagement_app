@@ -1,46 +1,8 @@
 import '../models/game_model.dart';
 import '../models/game_session_model.dart';
 import '../core/utils/app_logger.dart';
+import '../services/api/games_api_service.dart';
 import 'base_view_model.dart';
-
-// Placeholder for GamesApiService - to be implemented
-class GamesApiService {
-  Future<List<dynamic>> getGames({String? category}) async {
-    // TODO: Implement actual API call
-    return [];
-  }
-
-  Future<Map<String, dynamic>> getGameById(String gameId) async {
-    // TODO: Implement actual API call
-    return {};
-  }
-
-  Future<Map<String, dynamic>> startGameSession(String gameId) async {
-    // TODO: Implement actual API call
-    return {};
-  }
-
-  Future<void> submitGameScore(
-    String sessionId,
-    int score,
-    Map<String, dynamic>? metadata,
-  ) async {
-    // TODO: Implement actual API call
-  }
-
-  Future<List<dynamic>> getLeaderboard(
-    String gameId, {
-    String period = 'all',
-  }) async {
-    // TODO: Implement actual API call
-    return [];
-  }
-
-  Future<Map<String, dynamic>> getUserGameStats() async {
-    // TODO: Implement actual API call
-    return {};
-  }
-}
 
 class GamesViewModel extends BaseViewModel {
   static const _tag = 'GamesViewModel';

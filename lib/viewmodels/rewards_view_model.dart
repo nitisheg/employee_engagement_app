@@ -1,33 +1,7 @@
 import '../models/reward_model.dart';
 import '../core/utils/app_logger.dart';
+import '../services/api/rewards_api_service.dart';
 import 'base_view_model.dart';
-
-// Placeholder for RewardsApiService - to be implemented
-class RewardsApiService {
-  Future<List<dynamic>> getAvailableRewards() async {
-    // TODO: Implement actual API call
-    return [];
-  }
-
-  Future<List<dynamic>> getUserRewards() async {
-    // TODO: Implement actual API call
-    return [];
-  }
-
-  Future<List<dynamic>> getRewardHistory() async {
-    // TODO: Implement actual API call
-    return [];
-  }
-
-  Future<Map<String, dynamic>> getUserPoints() async {
-    // TODO: Implement actual API call
-    return {'points': 0};
-  }
-
-  Future<void> redeemReward(String rewardId) async {
-    // TODO: Implement actual API call
-  }
-}
 
 class RewardsViewModel extends BaseViewModel {
   static const _tag = 'RewardsViewModel';

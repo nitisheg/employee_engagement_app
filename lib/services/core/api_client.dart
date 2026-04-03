@@ -1,11 +1,13 @@
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
+import 'package:flutter/foundation.dart';
+import '../../core/constants/api_constants.dart';
 import '../../core/utils/app_logger.dart';
 import '../storage/secure_storage_service.dart';
 
 class ApiClient {
-  static const String baseUrl = 'https://emp-eng-api.stagingwebsite.uk';
+  static const String baseUrl = ApiConstants.baseUrl;
 
   static ApiClient? _instance;
   static ApiClient get instance => _instance ??= ApiClient._();
@@ -49,15 +51,27 @@ class ApiClient {
       ),
     );
     dio.interceptors.add(_AuthInterceptor(dio, _storage, _cookieJar));
+    if (kDebugMode) {
+      dio.interceptors.add(
+        LogInterceptor(
+          requestHeader: false,
+          requestBody: true,
+          responseHeader: false,
+          responseBody: true,
+          error: true,
+          logPrint: (Object log) => AppLogger.network('DioLog', '$log'),
+        ),
+      );
+    }
   }
 
   Future<void> saveToken(String token) =>
       _storage.write(key: SecureStorageService.accessTokenKey, value: token);
 
-    Future<void> clearToken() =>
+  Future<void> clearToken() =>
       _storage.delete(key: SecureStorageService.accessTokenKey);
 
-    Future<String?> getToken() =>
+  Future<String?> getToken() =>
       _storage.read(key: SecureStorageService.accessTokenKey);
 
   static dynamic _unwrapResponse(dynamic responseData) {
@@ -106,7 +120,7 @@ class _AuthInterceptor extends Interceptor {
         refreshDio.interceptors.add(CookieManager(_cookieJar));
 
         final Response<dynamic> response =
-            await refreshDio.post<dynamic>('/api/auth/user/refresh');
+          await refreshDio.post<dynamic>(ApiConstants.refreshEndpoint);
         final String? newToken =
             (response.data as Map<String, dynamic>?)?['accessToken'] as String?;
 

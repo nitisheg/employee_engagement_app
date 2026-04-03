@@ -1,40 +1,7 @@
 import '../models/certification_model.dart';
 import '../core/utils/app_logger.dart';
+import '../services/api/certifications_api_service.dart';
 import 'base_view_model.dart';
-
-// Placeholder for CertificationsApiService - to be implemented
-class CertificationsApiService {
-  Future<List<dynamic>> getAvailableCertifications({String? category}) async {
-    // TODO: Implement actual API call
-    return [];
-  }
-
-  Future<List<dynamic>> getUserCertifications() async {
-    // TODO: Implement actual API call
-    return [];
-  }
-
-  Future<List<dynamic>> getCertificationProgress() async {
-    // TODO: Implement actual API call
-    return [];
-  }
-
-  Future<void> enrollInCertification(String certificationId) async {
-    // TODO: Implement actual API call
-  }
-
-  Future<void> startCertificationAttempt(String certificationId) async {
-    // TODO: Implement actual API call
-  }
-
-  Future<Map<String, dynamic>> submitCertificationAttempt(
-    String attemptId,
-    Map<String, dynamic> answers,
-  ) async {
-    // TODO: Implement actual API call
-    return {};
-  }
-}
 
 class CertificationsViewModel extends BaseViewModel {
   static const _tag = 'CertificationsViewModel';

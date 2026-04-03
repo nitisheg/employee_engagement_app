@@ -1,52 +1,7 @@
 import '../models/attendance_model.dart';
 import '../core/utils/app_logger.dart';
+import '../services/api/attendance_api_service.dart';
 import 'base_view_model.dart';
-
-// Placeholder for AttendanceApiService - to be implemented
-class AttendanceApiService {
-  Future<List<dynamic>> getAttendanceHistory({
-    DateTime? startDate,
-    DateTime? endDate,
-  }) async {
-    // TODO: Implement actual API call
-    return [];
-  }
-
-  Future<Map<String, dynamic>?> getTodayAttendance() async {
-    // TODO: Implement actual API call
-    return null;
-  }
-
-  Future<Map<String, dynamic>> getAttendanceStats() async {
-    // TODO: Implement actual API call
-    return {};
-  }
-
-  Future<Map<String, dynamic>> checkIn({
-    String? location,
-    Map<String, dynamic>? metadata,
-  }) async {
-    // TODO: Implement actual API call
-    return {};
-  }
-
-  Future<Map<String, dynamic>> checkOut({
-    String? location,
-    Map<String, dynamic>? metadata,
-  }) async {
-    // TODO: Implement actual API call
-    return {};
-  }
-
-  Future<void> requestLeave({
-    required DateTime startDate,
-    required DateTime endDate,
-    required String reason,
-    String? leaveType,
-  }) async {
-    // TODO: Implement actual API call
-  }
-}
 
 class AttendanceViewModel extends BaseViewModel {
   static const _tag = 'AttendanceViewModel';

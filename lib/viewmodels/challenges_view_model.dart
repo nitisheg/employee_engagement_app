@@ -1,40 +1,7 @@
 import '../models/challenge_model.dart';
 import '../core/utils/app_logger.dart';
+import '../services/api/challenges_api_service.dart';
 import 'base_view_model.dart';
-
-// Placeholder for ChallengesApiService - to be implemented
-class ChallengesApiService {
-  Future<List<dynamic>> getActiveChallenges({String? category}) async {
-    // TODO: Implement actual API call
-    return [];
-  }
-
-  Future<List<dynamic>> getUserChallenges() async {
-    // TODO: Implement actual API call
-    return [];
-  }
-
-  Future<List<dynamic>> getChallengeLeaderboard(String challengeId) async {
-    // TODO: Implement actual API call
-    return [];
-  }
-
-  Future<Map<String, dynamic>> getUserChallengeStats() async {
-    // TODO: Implement actual API call
-    return {};
-  }
-
-  Future<void> joinChallenge(String challengeId) async {
-    // TODO: Implement actual API call
-  }
-
-  Future<void> submitChallengeProgress(
-    String challengeId,
-    Map<String, dynamic> progress,
-  ) async {
-    // TODO: Implement actual API call
-  }
-}
 
 class ChallengesViewModel extends BaseViewModel {
   static const _tag = 'ChallengesViewModel';

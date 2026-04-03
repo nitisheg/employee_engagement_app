@@ -1,37 +1,7 @@
 import '../models/project_model.dart';
 import '../core/utils/app_logger.dart';
+import '../services/api/projects_api_service.dart';
 import 'base_view_model.dart';
-
-// Placeholder for ProjectsApiService - to be implemented
-class ProjectsApiService {
-  Future<List<dynamic>> getProjects({String? status, String? category}) async {
-    // TODO: Implement actual API call
-    return [];
-  }
-
-  Future<Map<String, dynamic>> getProjectById(String projectId) async {
-    // TODO: Implement actual API call
-    return {};
-  }
-
-  Future<List<dynamic>> getUserProjects() async {
-    // TODO: Implement actual API call
-    return [];
-  }
-
-  Future<List<dynamic>> getProjectTasks(String projectId) async {
-    // TODO: Implement actual API call
-    return [];
-  }
-
-  Future<void> updateTaskStatus(String taskId, String status) async {
-    // TODO: Implement actual API call
-  }
-
-  Future<void> joinProject(String projectId) async {
-    // TODO: Implement actual API call
-  }
-}
 
 class ProjectsViewModel extends BaseViewModel {
   static const _tag = 'ProjectsViewModel';

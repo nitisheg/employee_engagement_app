@@ -1,44 +1,6 @@
-import 'package:dio/dio.dart';
-import '../services/api_service.dart';
 import '../core/utils/app_logger.dart';
+import '../services/api/leaderboard_api_service.dart';
 import 'base_view_model.dart';
-
-class LeaderboardApiService {
-  final Dio _dio = ApiClient.instance.dio;
-
-  Future<List<dynamic>> getOverallLeaderboard({
-    String period = 'monthly',
-  }) async {
-    final resp = await _dio.get<Map<String, dynamic>>(
-      '/api/user/leaderboard',
-      queryParameters: {'period': period},
-    );
-    return (resp.data?['leaderboard'] as List<dynamic>?) ?? [];
-  }
-
-  Future<List<dynamic>> getQuizLeaderboard({String period = 'monthly'}) async {
-    // TODO: Implement actual API call
-    return [];
-  }
-
-  Future<List<dynamic>> getGamesLeaderboard({String period = 'monthly'}) async {
-    // TODO: Implement actual API call
-    return [];
-  }
-
-  Future<List<dynamic>> getDepartmentLeaderboard(
-    String departmentId, {
-    String period = 'monthly',
-  }) async {
-    // TODO: Implement actual API call
-    return [];
-  }
-
-  Future<Map<String, dynamic>> getUserRank() async {
-    // TODO: Implement actual API call
-    return {};
-  }
-}
 
 class LeaderboardViewModel extends BaseViewModel {
   static const _tag = 'LeaderboardViewModel';
