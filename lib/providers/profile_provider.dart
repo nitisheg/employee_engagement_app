@@ -51,10 +51,13 @@ class ProfileProvider extends ChangeNotifier {
 
   Future<bool> updateProfile({
     required String name,
+    required String email,
+    required String role,
     required String phone,
     required String address,
     required String department,
     required String designation,
+    required String employeeId,
   }) async {
     AppLogger.info(_tag, 'updateProfile called');
     _isUpdating = true;
@@ -65,10 +68,13 @@ class ProfileProvider extends ChangeNotifier {
     try {
       final data = await _profileApi.updateProfile({
         'name': name,
+        'email': email,
+        'role': role,
         'phone': phone,
         'address': address,
         'department': department,
         'designation': designation,
+        'employee_id': employeeId,
       });
       final userJson = data['user'] as Map<String, dynamic>? ?? data;
       _user = UserModel.fromJson(userJson);

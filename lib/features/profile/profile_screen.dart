@@ -51,6 +51,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               250.0,
             ),
             pinned: true,
+            automaticallyImplyLeading: false,
             backgroundColor: AppColors.primary,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
@@ -295,6 +296,71 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ).animate().fadeIn(delay: 150.ms),
                   const SizedBox(height: 20),
 
+                  // Profile Information
+                  SectionHeader(
+                    title: 'Profile Information',
+                  ).animate().fadeIn(delay: 180.ms),
+                  const SizedBox(height: 12),
+                  AppCard(
+                    child: Column(
+                      children: [
+                        if (user.employeeId.isNotEmpty)
+                          _ProfileInfoRow(
+                            icon: Icons.badge_outlined,
+                            label: 'Employee ID',
+                            value: user.employeeId,
+                          ),
+                        _ProfileInfoRow(
+                          icon: Icons.email_outlined,
+                          label: 'Email',
+                          value: user.email,
+                        ),
+                        if (user.phone != null && user.phone!.isNotEmpty)
+                          _ProfileInfoRow(
+                            icon: Icons.phone_outlined,
+                            label: 'Phone',
+                            value: user.phone!,
+                          ),
+                        if (user.address != null && user.address!.isNotEmpty)
+                          _ProfileInfoRow(
+                            icon: Icons.location_on_outlined,
+                            label: 'Address',
+                            value: user.address!,
+                          ),
+                        _ProfileInfoRow(
+                          icon: Icons.business_outlined,
+                          label: 'Department',
+                          value: user.department,
+                        ),
+                        _ProfileInfoRow(
+                          icon: Icons.work_outline_rounded,
+                          label: 'Designation',
+                          value: user.designation ?? 'Employee',
+                        ),
+                        if (user.joiningDate != null && user.joiningDate!.isNotEmpty)
+                          _ProfileInfoRow(
+                            icon: Icons.calendar_today_outlined,
+                            label: 'Joining Date',
+                            value: _formatDate(user.joiningDate!),
+                          ),
+                        _ProfileInfoRow(
+                          icon: Icons.verified_user_outlined,
+                          label: 'Status',
+                          value: user.status[0].toUpperCase() + user.status.substring(1),
+                          valueColor: user.status == 'active' ? AppColors.success : AppColors.warning,
+                        ),
+                        if (user.lastCheckInDate != null)
+                          _ProfileInfoRow(
+                            icon: Icons.event_available_outlined,
+                            label: 'Last Check-In',
+                            value: user.lastCheckInDate!,
+                            isLast: true,
+                          ),
+                      ],
+                    ),
+                  ).animate().fadeIn(delay: 190.ms),
+                  const SizedBox(height: 20),
+
                   // Achievements
                   SectionHeader(
                     title: 'Achievements',
@@ -359,27 +425,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         childAspectRatio: childAspectRatio,
                         children: [
                           StatCard(
-                            title: 'Quizzes Won',
-                            value: '24',
-                            icon: Icons.quiz_rounded,
+                            title: 'Total Points',
+                            value: user.totalPoints.toString(),
+                            icon: Icons.stars_rounded,
                             color: AppColors.primary,
                           ),
                           StatCard(
-                            title: 'Challenges Done',
-                            value: '18',
-                            icon: Icons.flag_rounded,
-                            color: AppColors.success,
-                          ),
-                          StatCard(
-                            title: 'Days Streak',
-                            value: '7',
+                            title: 'Current Streak',
+                            value: '${user.currentStreak}d',
                             icon: Icons.local_fire_department_rounded,
                             color: AppColors.secondary,
                           ),
                           StatCard(
-                            title: 'Rewards Redeemed',
-                            value: '3',
-                            icon: Icons.card_giftcard_rounded,
+                            title: 'Longest Streak',
+                            value: '${user.longestStreak}d',
+                            icon: Icons.emoji_events_rounded,
+                            color: AppColors.gold,
+                          ),
+                          StatCard(
+                            title: 'Rank',
+                            value: '#${user.rank}',
+                            icon: Icons.leaderboard_rounded,
                             color: AppColors.warning,
                           ),
                         ],
@@ -800,6 +866,69 @@ class _CertPreviewItem extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _ProfileInfoRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color? valueColor;
+  final bool isLast;
+
+  const _ProfileInfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.valueColor,
+    this.isLast = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+          child: Row(
+            children: [
+              Icon(icon, size: 18, color: AppColors.textSecondary),
+              const SizedBox(width: 12),
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                value,
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: valueColor ?? AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (!isLast)
+          Divider(
+            height: 1,
+            color: AppColors.textSecondary.withValues(alpha: 0.12),
+          ),
+      ],
+    );
+  }
+}
+
+String _formatDate(String rawDate) {
+  try {
+    final dt = DateTime.parse(rawDate);
+    return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+  } catch (_) {
+    return rawDate;
   }
 }
 

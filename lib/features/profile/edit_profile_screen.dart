@@ -19,10 +19,13 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _nameController;
+  late TextEditingController _emailController;
+  late TextEditingController _roleController;
   late TextEditingController _phoneController;
   late TextEditingController _addressController;
   late TextEditingController _departmentController;
   late TextEditingController _designationController;
+  late TextEditingController _employeeIdController;
   late TextEditingController _currentPasswordController;
   late TextEditingController _newPasswordController;
   late TextEditingController _confirmPasswordController;
@@ -40,15 +43,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void initState() {
     super.initState();
     _nameController = TextEditingController();
+    _emailController = TextEditingController();
+    _roleController = TextEditingController();
     _phoneController = TextEditingController();
     _addressController = TextEditingController();
     _departmentController = TextEditingController();
     _designationController = TextEditingController();
+    _employeeIdController = TextEditingController();
     _currentPasswordController = TextEditingController();
     _newPasswordController = TextEditingController();
     _confirmPasswordController = TextEditingController();
 
-    // Fetch profile data
     Future.microtask(() {
       context.read<ProfileProvider>().fetchProfile();
     });
@@ -59,21 +64,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.didChangeDependencies();
     final user = context.watch<AuthProvider>().user;
     if (user != null && _nameController.text.isEmpty) {
-      _nameController.text = user.name ?? '';
+      _nameController.text = user.name;
+      _emailController.text = user.email;
+      _roleController.text = user.role;
       _phoneController.text = user.phone ?? '';
       _addressController.text = user.address ?? '';
-      _departmentController.text = user.department ?? '';
+      _departmentController.text = user.department;
       _designationController.text = user.designation ?? '';
+      _employeeIdController.text = user.employeeId;
     }
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _emailController.dispose();
+    _roleController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
     _departmentController.dispose();
     _designationController.dispose();
+    _employeeIdController.dispose();
     _currentPasswordController.dispose();
     _newPasswordController.dispose();
     _confirmPasswordController.dispose();
@@ -93,10 +104,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     final success = await context.read<ProfileProvider>().updateProfile(
       name: _nameController.text.trim(),
+      email: _emailController.text.trim(),
+      role: _roleController.text.trim(),
       phone: _phoneController.text.trim(),
       address: _addressController.text.trim(),
       department: _departmentController.text.trim(),
       designation: _designationController.text.trim(),
+      employeeId: _employeeIdController.text.trim(),
     );
 
     if (mounted) {
@@ -205,7 +219,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final _ = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -234,6 +247,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Avatar Section
                   Center(
                     child: Column(
                       children: [
@@ -336,107 +350,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ).animate().fadeIn(delay: 100.ms).slideY(begin: -0.1, end: 0),
                   const SizedBox(height: 20),
 
-                  // Account Info (read-only)
-                  if (authProvider.user != null) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.15),
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.email_outlined, size: 16, color: AppColors.primary),
-                              const SizedBox(width: 10),
-                              Text(
-                                'Email',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                              const Spacer(),
-                              Text(
-                                authProvider.user!.email,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Icon(Icons.verified_user_outlined, size: 16, color: AppColors.primary),
-                              const SizedBox(width: 10),
-                              Text(
-                                'Status',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                              const Spacer(),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: authProvider.user!.status == 'active'
-                                      ? AppColors.success.withValues(alpha: 0.12)
-                                      : AppColors.warning.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  authProvider.user!.status[0].toUpperCase() +
-                                      authProvider.user!.status.substring(1),
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: authProvider.user!.status == 'active'
-                                        ? AppColors.success
-                                        : AppColors.warning,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (authProvider.user!.lastCheckInDate != null) ...[
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                const Icon(Icons.event_available_outlined, size: 16, color: AppColors.primary),
-                                const SizedBox(width: 10),
-                                Text(
-                                  'Last Check-In',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12,
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                                const Spacer(),
-                                Text(
-                                  authProvider.user!.lastCheckInDate!,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.textPrimary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-
                   // Personal Information Section
                   Text(
                     'Personal Information',
@@ -464,6 +377,39 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           decoration: const InputDecoration(
                             labelText: 'Full Name',
                             prefixIcon: Icon(Icons.person_outline_rounded),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Email
+                        TextFormField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Email is required';
+                            }
+                            if (!RegExp(
+                              r'^[^@]+@[^@]+\.[^@]+',
+                            ).hasMatch(value.trim())) {
+                              return 'Enter a valid email';
+                            }
+                            return null;
+                          },
+                          decoration: const InputDecoration(
+                            labelText: 'Email',
+                            prefixIcon: Icon(Icons.email_outlined),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Role
+                        TextFormField(
+                          readOnly: true,
+                          controller: _roleController,
+                          decoration: const InputDecoration(
+                            labelText: 'Role',
+                            prefixIcon: Icon(Icons.manage_accounts_outlined),
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -507,9 +453,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             prefixIcon: Icon(Icons.badge_outlined),
                           ),
                         ),
+                        const SizedBox(height: 12),
+
+                        // Employee ID
+                        TextFormField(
+                          controller: _employeeIdController,
+                          decoration: const InputDecoration(
+                            labelText: 'Employee ID',
+                            prefixIcon: Icon(Icons.numbers_outlined),
+                          ),
+                        ),
                         const SizedBox(height: 20),
 
-                        // Submit Profile Button
+                        // Save Button
                         Consumer<ProfileProvider>(
                           builder: (context, provider, _) {
                             return provider.isUpdating
@@ -538,7 +494,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ).animate().fadeIn(delay: 150.ms).slideY(begin: -0.1, end: 0),
                   const SizedBox(height: 28),
 
-                  // Change Password Section
+                  // Security Section
                   Text(
                     'Security',
                     style: GoogleFonts.poppins(
@@ -701,11 +657,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                             onPressed: _handleChangePassword,
                                             style: ElevatedButton.styleFrom(
                                               backgroundColor:
-                                                  AppColors.primary,
+                                                  AppColors.warning,
                                               foregroundColor: Colors.white,
                                             ),
                                             child: Text(
-                                              'Update',
+                                              'Update Password',
                                               style: GoogleFonts.poppins(),
                                             ),
                                           );
@@ -717,7 +673,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ],
                       ),
                     ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                 ],
               ),
             );
