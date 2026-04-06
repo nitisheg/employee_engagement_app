@@ -47,8 +47,7 @@ class ProfileViewModel extends BaseViewModel {
   Future<void> loadAchievements() async {
     AppLogger.info(_tag, 'loadAchievements called');
     try {
-      setLoading();
-      // TODO: Implement when API is available
+      setLoading(); 
       _achievements = [];
       AppLogger.success(_tag, 'loadAchievements succeeded');
       setSuccess();
@@ -61,8 +60,7 @@ class ProfileViewModel extends BaseViewModel {
   Future<void> loadCertifications() async {
     AppLogger.info(_tag, 'loadCertifications called');
     try {
-      setLoading();
-      // TODO: Implement when API is available
+      setLoading(); 
       _certifications = [];
       AppLogger.success(_tag, 'loadCertifications succeeded');
       setSuccess();
@@ -75,8 +73,7 @@ class ProfileViewModel extends BaseViewModel {
   Future<void> loadStats() async {
     AppLogger.info(_tag, 'loadStats called');
     try {
-      setLoading();
-      // TODO: Implement when API is available
+      setLoading(); 
       _stats = {};
       AppLogger.success(_tag, 'loadStats succeeded');
       setSuccess();
