@@ -42,12 +42,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 
   String _formatTime(DateTime time) {
-    final hour = time.hour % 12 == 0 ? 12 : time.hour % 12;
-    final amPm = time.hour >= 12 ? 'PM' : 'AM';
+    final localTime = time.toLocal();
+    final hour = localTime.hour % 12 == 0 ? 12 : localTime.hour % 12;
+    final amPm = localTime.hour >= 12 ? 'PM' : 'AM';
 
     return "${hour.toString().padLeft(2, '0')}:"
-        "${time.minute.toString().padLeft(2, '0')}:"
-        "${time.second.toString().padLeft(2, '0')} $amPm";
+        "${localTime.minute.toString().padLeft(2, '0')}:"
+        "${localTime.second.toString().padLeft(2, '0')} $amPm";
   }
 
   String _formatDate(DateTime time) {
@@ -256,8 +257,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 ),
                                 backgroundColor: AppColors.success,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(14),
                                 ),
+                                elevation: 2,
                               ),
                               icon: provider.isCheckingIn
                                   ? const SizedBox(
@@ -271,12 +273,15 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                             ),
                                       ),
                                     )
-                                  : const Icon(Icons.login),
+                                  : const Icon(Icons.login_rounded),
                               label: Text(
                                 provider.isCheckingIn
-                                    ? 'Checking In...'
-                                    : 'Check In',
-                                style: const TextStyle(fontSize: 16),
+                                    ? 'Punching In...'
+                                    : 'Punch In',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                               onPressed: provider.isCheckingIn
                                   ? null
@@ -291,76 +296,432 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         else
                           Column(
                             children: [
-                              // Today's Sessions
+                              // Today's Sessions Card
                               Container(
-                                padding: const EdgeInsets.all(12),
+                                width: double.infinity,
                                 decoration: BoxDecoration(
-                                  color: AppColors.success.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(12),
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.06),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
-                                      'Today\'s Activity',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
+                                    // Header
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 12,
                                       ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    ...todayStatus.sessions.map(
-                                      (session) => Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 4,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.success.withOpacity(
+                                          0.1,
                                         ),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                              'Session ${todayStatus.sessions.indexOf(session) + 1}',
+                                        borderRadius:
+                                            const BorderRadius.vertical(
+                                              top: Radius.circular(16),
+                                            ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.today_rounded,
+                                            color: AppColors.success,
+                                            size: 20,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          const Text(
+                                            "Today's Activity",
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w700,
+                                              color: AppColors.success,
+                                            ),
+                                          ),
+                                          const Spacer(),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.success,
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                            ),
+                                            child: Text(
+                                              '${todayStatus.sessions.length} Session${todayStatus.sessions.length != 1 ? 's' : ''}',
                                               style: const TextStyle(
-                                                fontWeight: FontWeight.w500,
+                                                color: Colors.white,
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w600,
                                               ),
                                             ),
-                                            Text(
-                                              '${_formatTime(session.checkIn)} - ${session.checkOut != null ? _formatTime(session.checkOut!) : '--'}',
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                    const SizedBox(height: 8),
-                                    Divider(color: Colors.grey.shade300),
-                                    const SizedBox(height: 8),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        const Text(
-                                          'Total Duration',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
+
+                                    // Sessions list
+                                    ...List.generate(todayStatus.sessions.length, (
+                                      i,
+                                    ) {
+                                      final session = todayStatus.sessions[i];
+                                      final isActive = session.checkOut == null;
+                                      Duration? dur;
+                                      if (session.checkOut != null) {
+                                        dur = session.checkOut!.difference(
+                                          session.checkIn,
+                                        );
+                                      }
+
+                                      return Column(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 12,
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                // Session label
+                                                Row(
+                                                  children: [
+                                                    Container(
+                                                      width: 24,
+                                                      height: 24,
+                                                      alignment:
+                                                          Alignment.center,
+                                                      decoration: BoxDecoration(
+                                                        color: isActive
+                                                            ? AppColors.success
+                                                            : Colors
+                                                                  .grey
+                                                                  .shade400,
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                      child: Text(
+                                                        '${i + 1}',
+                                                        style: const TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 12,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Text(
+                                                      'Session ${i + 1}',
+                                                      style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        fontSize: 13,
+                                                        color: Colors.black87,
+                                                      ),
+                                                    ),
+                                                    if (isActive) ...[
+                                                      const SizedBox(width: 8),
+                                                      Container(
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              horizontal: 8,
+                                                              vertical: 2,
+                                                            ),
+                                                        decoration: BoxDecoration(
+                                                          color: AppColors
+                                                              .success
+                                                              .withOpacity(
+                                                                0.15,
+                                                              ),
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                10,
+                                                              ),
+                                                        ),
+                                                        child: const Text(
+                                                          'Active',
+                                                          style: TextStyle(
+                                                            color: AppColors
+                                                                .success,
+                                                            fontSize: 10,
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                    if (dur != null) ...[
+                                                      const Spacer(),
+                                                      Text(
+                                                        '${dur.inHours}h ${dur.inMinutes.remainder(60)}m',
+                                                        style: TextStyle(
+                                                          fontSize: 12,
+                                                          color: Colors
+                                                              .grey
+                                                              .shade600,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 10),
+                                                // Punch In / Punch Out row
+                                                Row(
+                                                  children: [
+                                                    // Punch In
+                                                    Expanded(
+                                                      child: Container(
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              horizontal: 12,
+                                                              vertical: 10,
+                                                            ),
+                                                        decoration: BoxDecoration(
+                                                          color: const Color(
+                                                            0xFFE8F5E9,
+                                                          ),
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                10,
+                                                              ),
+                                                        ),
+                                                        child: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Row(
+                                                              children: const [
+                                                                Icon(
+                                                                  Icons
+                                                                      .login_rounded,
+                                                                  size: 14,
+                                                                  color: Color(
+                                                                    0xFF2E7D32,
+                                                                  ),
+                                                                ),
+                                                                SizedBox(
+                                                                  width: 4,
+                                                                ),
+                                                                Text(
+                                                                  'Punch In',
+                                                                  style: TextStyle(
+                                                                    fontSize:
+                                                                        11,
+                                                                    color: Color(
+                                                                      0xFF2E7D32,
+                                                                    ),
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            const SizedBox(
+                                                              height: 4,
+                                                            ),
+                                                            Text(
+                                                              _formatTime(
+                                                                session.checkIn,
+                                                              ),
+                                                              style: const TextStyle(
+                                                                fontSize: 14,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: Color(
+                                                                  0xFF1B5E20,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 10),
+                                                    // Arrow
+                                                    Icon(
+                                                      Icons
+                                                          .arrow_forward_rounded,
+                                                      size: 16,
+                                                      color:
+                                                          Colors.grey.shade400,
+                                                    ),
+                                                    const SizedBox(width: 10),
+                                                    // Punch Out
+                                                    Expanded(
+                                                      child: Container(
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              horizontal: 12,
+                                                              vertical: 10,
+                                                            ),
+                                                        decoration: BoxDecoration(
+                                                          color: isActive
+                                                              ? Colors
+                                                                    .grey
+                                                                    .shade100
+                                                              : const Color(
+                                                                  0xFFFFF3E0,
+                                                                ),
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                10,
+                                                              ),
+                                                        ),
+                                                        child: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Row(
+                                                              children: [
+                                                                Icon(
+                                                                  Icons
+                                                                      .logout_rounded,
+                                                                  size: 14,
+                                                                  color:
+                                                                      isActive
+                                                                      ? Colors
+                                                                            .grey
+                                                                      : const Color(
+                                                                          0xFFE65100,
+                                                                        ),
+                                                                ),
+                                                                const SizedBox(
+                                                                  width: 4,
+                                                                ),
+                                                                Text(
+                                                                  'Punch Out',
+                                                                  style: TextStyle(
+                                                                    fontSize:
+                                                                        11,
+                                                                    color:
+                                                                        isActive
+                                                                        ? Colors
+                                                                              .grey
+                                                                        : const Color(
+                                                                            0xFFE65100,
+                                                                          ),
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            const SizedBox(
+                                                              height: 4,
+                                                            ),
+                                                            Text(
+                                                              session.checkOut !=
+                                                                      null
+                                                                  ? _formatTime(
+                                                                      session
+                                                                          .checkOut!,
+                                                                    )
+                                                                  : '--:-- --',
+                                                              style: TextStyle(
+                                                                fontSize: 14,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: isActive
+                                                                    ? Colors
+                                                                          .grey
+                                                                          .shade400
+                                                                    : const Color(
+                                                                        0xFFBF360C,
+                                                                      ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          if (i <
+                                              todayStatus.sessions.length - 1)
+                                            Divider(
+                                              height: 1,
+                                              color: Colors.grey.shade200,
+                                              indent: 16,
+                                              endIndent: 16,
+                                            ),
+                                        ],
+                                      );
+                                    }),
+
+                                    // Total Duration footer
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 12,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade50,
+                                        borderRadius:
+                                            const BorderRadius.vertical(
+                                              bottom: Radius.circular(16),
+                                            ),
+                                        border: Border(
+                                          top: BorderSide(
+                                            color: Colors.grey.shade200,
                                           ),
                                         ),
-                                        Text(
-                                          '${todayStatus.totalMinutes ~/ 60}h ${todayStatus.totalMinutes % 60}m',
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF10B981),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Row(
+                                            children: const [
+                                              Icon(
+                                                Icons.timer_outlined,
+                                                size: 16,
+                                                color: Colors.black54,
+                                              ),
+                                              SizedBox(width: 6),
+                                              Text(
+                                                'Total Duration',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.black54,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ),
-                                      ],
+                                          Text(
+                                            '${todayStatus.totalMinutes ~/ 60}h ${todayStatus.totalMinutes % 60}m',
+                                            style: const TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.success,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
-                              const SizedBox(height: 12),
+                              const SizedBox(height: 16),
                               // Check Out Button
                               SizedBox(
                                 width: double.infinity,
@@ -369,10 +730,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 16,
                                     ),
-                                    backgroundColor: AppColors.warning,
+                                    backgroundColor: const Color(0xFFE65100),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(14),
                                     ),
+                                    elevation: 2,
                                   ),
                                   icon: provider.isCheckingOut
                                       ? const SizedBox(
@@ -386,12 +748,15 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                                 ),
                                           ),
                                         )
-                                      : const Icon(Icons.logout),
+                                      : const Icon(Icons.logout_rounded),
                                   label: Text(
                                     provider.isCheckingOut
                                         ? 'Checking Out...'
-                                        : 'Check Out',
-                                    style: const TextStyle(fontSize: 16),
+                                        : 'Punch Out',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                   onPressed: provider.isCheckingOut
                                       ? null
@@ -577,4 +942,3 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     );
   }
 }
-

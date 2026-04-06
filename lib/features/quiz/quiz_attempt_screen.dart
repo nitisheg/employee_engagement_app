@@ -391,8 +391,8 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
-                Navigator.of(context).pop(); // Go back to quiz list
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: isExcellent
@@ -631,7 +631,9 @@ class _QuizAttemptScreenState extends State<QuizAttemptScreen>
                                             width: 2,
                                           ),
                                           color: isSelected
-                                              ? AppColors.primary.withOpacity(0.1)
+                                              ? AppColors.primary.withOpacity(
+                                                  0.1,
+                                                )
                                               : Colors.white,
                                         ),
                                         child: Row(
@@ -748,4 +750,3 @@ class _ResultStatItem extends StatelessWidget {
     );
   }
 }
-

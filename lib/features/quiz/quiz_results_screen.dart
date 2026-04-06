@@ -36,31 +36,34 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
       ),
-      body: Consumer<QuizProvider>(
-        builder: (context, provider, child) {
-          final results = provider.myResults;
-          return CommonPaginatedList<QuizMyResult>(
-            items: results,
-            isInitialLoading: provider.loadingResults,
-            errorMessage: provider.errorMessage,
-            onRetry: () => provider.fetchMyResults(refresh: true),
-            onRefresh: () => provider.fetchMyResults(refresh: true),
-            isLoadingMore: provider.loadingMoreResults,
-            hasMore: provider.hasMoreResults,
-            onLoadMore: provider.loadMoreMyResults,
-            emptyTitle: 'No Quiz Results Yet',
-            emptyMessage: 'Complete some quizzes to see your results here.',
-            emptyIcon: Icons.history_rounded,
-            noMoreDataText: 'No more quiz results',
-            padding: const EdgeInsets.all(16),
-            itemBuilder: (context, result, index) {
-              return _ResultCard(result: result)
-                  .animate()
-                  .fadeIn(delay: (index * 50).ms)
-                  .slideY(begin: 0.1, end: 0);
-            },
-          );
-        },
+      body: SafeArea(
+        top: false,
+        child: Consumer<QuizProvider>(
+          builder: (context, provider, child) {
+            final results = provider.myResults;
+            return CommonPaginatedList<QuizMyResult>(
+              items: results,
+              isInitialLoading: provider.loadingResults,
+              errorMessage: provider.errorMessage,
+              onRetry: () => provider.fetchMyResults(refresh: true),
+              onRefresh: () => provider.fetchMyResults(refresh: true),
+              isLoadingMore: provider.loadingMoreResults,
+              hasMore: provider.hasMoreResults,
+              onLoadMore: provider.loadMoreMyResults,
+              emptyTitle: 'No Quiz Results Yet',
+              emptyMessage: 'Complete some quizzes to see your results here.',
+              emptyIcon: Icons.history_rounded,
+              noMoreDataText: 'No more quiz results',
+              padding: const EdgeInsets.all(16),
+              itemBuilder: (context, result, index) {
+                return _ResultCard(result: result)
+                    .animate()
+                    .fadeIn(delay: (index * 50).ms)
+                    .slideY(begin: 0.1, end: 0);
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -254,4 +257,3 @@ class _ScoreItem extends StatelessWidget {
     );
   }
 }
-

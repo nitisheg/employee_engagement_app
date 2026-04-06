@@ -151,7 +151,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                     indicatorColor: AppColors.white,
                     indicatorWeight: 3,
                     labelColor: AppColors.white,
-                    unselectedLabelColor: AppColors.white.withValues(alpha: 0.6),
+                    unselectedLabelColor: AppColors.white.withValues(
+                      alpha: 0.6,
+                    ),
                     labelStyle: GoogleFonts.poppins(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -746,4 +748,3 @@ class _TeamsTab extends StatelessWidget {
     );
   }
 }
-

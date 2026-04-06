@@ -24,7 +24,7 @@ class QuizApiService {
   }) async {
     final Response<Map<String, dynamic>> response =
         await _dio.get<Map<String, dynamic>>(
-      '/api/quizzes/$quizId/take',
+      '/api/quizzes/$quizId/attempt',
       queryParameters: {'page': page, 'limit': limit},
     );
 

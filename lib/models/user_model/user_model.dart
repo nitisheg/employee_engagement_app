@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class UserModel {
   final String id;
   final String name;
@@ -59,6 +61,13 @@ class UserModel {
   }
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    final rawLastCheckIn =
+        json['lastCheckInDate'] ??
+        json['last_check_in'] ??
+        json['lastCheckIn'] ??
+        json['last_check_in_at'] ??
+        json['lastCheckInAt'];
+
     return UserModel(
       id: (json['_id'] ?? json['id'] ?? '') as String,
       name: (json['name'] ?? '') as String,
@@ -73,7 +82,7 @@ class UserModel {
       avatar: json['avatar'] as String?,
       joiningDate: (json['joining_date'] ?? json['joiningDate']) as String?,
       status: (json['status'] ?? 'active') as String,
-      lastCheckInDate: json['lastCheckInDate'] as String?,
+      lastCheckInDate: _formatLastCheckIn(rawLastCheckIn),
       totalPoints: (json['total_points'] ?? json['totalPoints'] ?? 0) as int,
       rank: (json['rank'] ?? 0) as int,
       currentStreak:
@@ -85,6 +94,24 @@ class UserModel {
           ? DateTime.tryParse(json['createdAt'] as String) ?? DateTime.now()
           : DateTime.now(),
     );
+  }
+
+  static String? _formatLastCheckIn(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+
+    final raw = value.toString().trim();
+    if (raw.isEmpty) {
+      return null;
+    }
+
+    final parsed = DateTime.tryParse(raw);
+    if (parsed == null) {
+      return raw;
+    }
+
+    return DateFormat('hh:mm a').format(parsed.toLocal());
   }
 
   Map<String, dynamic> toJson() => {
@@ -203,4 +230,3 @@ class AuthResponse {
     );
   }
 }
-

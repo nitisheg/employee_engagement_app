@@ -7,10 +7,13 @@ class AttendanceSession {
   const AttendanceSession({required this.checkIn, this.checkOut});
 
   factory AttendanceSession.fromJson(Map<String, dynamic> json) {
+    final checkInRaw = json['check_in'] as String;
+    final checkOutRaw = json['check_out'] as String?;
+
     return AttendanceSession(
-      checkIn: DateTime.parse(json['check_in'] as String),
-      checkOut: json['check_out'] != null
-          ? DateTime.parse(json['check_out'] as String)
+      checkIn: DateTime.parse(checkInRaw).toLocal(),
+      checkOut: checkOutRaw != null
+          ? DateTime.parse(checkOutRaw).toLocal()
           : null,
     );
   }
@@ -199,11 +202,8 @@ class CheckOutResponse {
   const CheckOutResponse({required this.attendance});
 
   factory CheckOutResponse.fromJson(Map<String, dynamic> json) {
-    return CheckOutResponse(
-      attendance: AttendanceRecord.fromJson(json),
-    );
+    return CheckOutResponse(attendance: AttendanceRecord.fromJson(json));
   }
 
   Map<String, dynamic> toJson() => attendance.toJson();
 }
-

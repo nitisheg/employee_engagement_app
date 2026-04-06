@@ -53,136 +53,134 @@ class _QuizListScreenState extends State<QuizListScreen>
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 160,
-            pinned: true,
-            backgroundColor: AppColors.primary,
-            automaticallyImplyLeading: false,
-            leading: Navigator.of(context).canPop()
-                ? IconButton(
-                    icon: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      color: AppColors.white,
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                  )
-                : null,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                ),
-                child: SafeArea(
-                  child: Center(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 8),
-                        Text(
-                          'Quizzes 📝',
-                          style: GoogleFonts.poppins(
-                            color: AppColors.white,
-                            fontSize: 26,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        Text(
-                          'Test your knowledge & earn points',
-                          style: GoogleFonts.poppins(
-                            color: AppColors.white.withValues(alpha: 0.85),
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.history_rounded, color: AppColors.white),
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const QuizResultsScreen()),
-                ),
-              ),
-            ],
-          ),
-          SliverToBoxAdapter(
-            child: Column(
-              children: [
-                Container(
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            SliverAppBar(
+              expandedHeight: 160,
+              pinned: true,
+              backgroundColor: AppColors.primary,
+              automaticallyImplyLeading: false,
+              leading: Navigator.of(context).canPop()
+                  ? IconButton(
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: AppColors.white,
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                    )
+                  : null,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
                   decoration: const BoxDecoration(
                     gradient: AppColors.primaryGradient,
                   ),
-                  child: TabBar(
-                    controller: _tabController,
-                    indicatorColor: AppColors.white,
-                    indicatorWeight: 3,
-                    labelColor: AppColors.white,
-                    unselectedLabelColor: AppColors.white.withValues(alpha: 0.7),
-                    tabs: const [
-                      Tab(text: 'All'),
-                      Tab(text: 'Live'),
-                      Tab(text: 'Upcoming'),
-                    ],
+                  child: SafeArea(
+                    child: Center(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 8),
+                          Text(
+                            'Quizzes 📝',
+                            style: GoogleFonts.poppins(
+                              color: AppColors.white,
+                              fontSize: 26,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          Text(
+                            'Test your knowledge & earn points',
+                            style: GoogleFonts.poppins(
+                              color: AppColors.white.withValues(alpha: 0.85),
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-                // Tab Bar View
-                SizedBox(
-                  height: MediaQuery.of(context).size.height - 200,
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _buildQuizList('all'),
-                      _buildQuizList('live'),
-                      _buildQuizList('upcoming'),
-                    ],
+              ),
+              bottom: TabBar(
+                controller: _tabController,
+                indicatorColor: AppColors.white,
+                labelColor: AppColors.white,
+                unselectedLabelColor: AppColors.white.withOpacity(0.7),
+                tabs: const [
+                  Tab(text: 'All'),
+                  Tab(text: 'Live'),
+                  Tab(text: 'Upcoming'),
+                ],
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.history_rounded,
+                    color: AppColors.white,
+                  ),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const QuizResultsScreen(),
+                    ),
                   ),
                 ),
               ],
             ),
+          ],
+
+          /// 👇 IMPORTANT: No SizedBox height here
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildQuizList('all'),
+              _buildQuizList('live'),
+              _buildQuizList('upcoming'),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildQuizList(String filter) {
-    return Consumer<QuizProvider>(
-      builder: (context, provider, child) {
-        final quizzes = provider.activeQuizzes;
-        return CommonPaginatedList<ActiveQuiz>(
-          items: quizzes,
-          isInitialLoading: provider.loadingQuizzes,
-          errorMessage: provider.errorMessage,
-          onRetry: () => _fetchQuizzesForTab(_tabController.index),
-          onRefresh: () =>
-              provider.fetchActiveQuizzes(filter: filter, refresh: true),
-          isLoadingMore: provider.loadingMoreQuizzes,
-          hasMore: provider.hasMoreQuizzes,
-          onLoadMore: provider.loadMoreActiveQuizzes,
-          emptyTitle: 'No Quizzes Found',
-          emptyMessage:
-              'No ${filter == 'all' ? 'active' : filter} quizzes are available right now.',
-          emptyIcon: Icons.quiz_rounded,
-          noMoreDataText: 'No more quizzes',
-          padding: EdgeInsets.symmetric(
-            horizontal: (MediaQuery.of(context).size.width * 0.042).clamp(
-              12.0,
-              24.0,
+    return SafeArea(
+      top: false,
+      child: Consumer<QuizProvider>(
+        builder: (context, provider, child) {
+          final quizzes = provider.activeQuizzes;
+          return CommonPaginatedList<ActiveQuiz>(
+            items: quizzes,
+            isInitialLoading: provider.loadingQuizzes,
+            errorMessage: provider.errorMessage,
+            onRetry: () => _fetchQuizzesForTab(_tabController.index),
+            onRefresh: () =>
+                provider.fetchActiveQuizzes(filter: filter, refresh: true),
+            isLoadingMore: provider.loadingMoreQuizzes,
+            hasMore: provider.hasMoreQuizzes,
+            onLoadMore: provider.loadMoreActiveQuizzes,
+            emptyTitle: 'No Quizzes Found',
+            emptyMessage:
+                'No ${filter == 'all' ? 'active' : filter} quizzes are available right now.',
+            emptyIcon: Icons.quiz_rounded,
+            noMoreDataText: 'No more quizzes',
+            padding: EdgeInsets.symmetric(
+              horizontal: (MediaQuery.of(context).size.width * 0.042).clamp(
+                12.0,
+                24.0,
+              ),
+              vertical: 16,
             ),
-            vertical: 16,
-          ),
-          itemBuilder: (context, quiz, _) => _QuizCard(quiz: quiz),
-        );
-      },
+            itemBuilder: (context, quiz, _) => _QuizCard(quiz: quiz),
+          );
+        },
+      ),
     );
   }
 }
@@ -262,7 +260,9 @@ class _QuizCard extends StatelessWidget {
                           isCompleted
                               ? Icons.check_rounded
                               : Icons.quiz_rounded,
-                          color: isCompleted ? AppColors.success : AppColors.white,
+                          color: isCompleted
+                              ? AppColors.success
+                              : AppColors.white,
                           size: 24,
                         ),
                       ),
@@ -427,4 +427,3 @@ class _InfoChip extends StatelessWidget {
     );
   }
 }
-
