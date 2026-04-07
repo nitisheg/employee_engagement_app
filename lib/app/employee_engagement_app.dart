@@ -13,6 +13,7 @@ import '../providers/challenges_provider.dart';
 import '../providers/leaderboard_provider.dart';
 import '../providers/notification_provider.dart';
 import '../providers/profile_provider.dart';
+import '../providers/psychometric_provider.dart';
 import '../providers/quiz_provider.dart';
 import '../providers/rewards_provider.dart';
 import '../services/storage/secure_storage_service.dart';
@@ -41,6 +42,7 @@ class EmployeeEngagementApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => RewardsProvider()),
         ChangeNotifierProvider(create: (_) => CertificationsProvider()),
         ChangeNotifierProvider(create: (_) => AttendanceProvider()),
+        ChangeNotifierProvider(create: (_) => PsychometricProvider()),
       ],
       child: MaterialApp(
         title: 'EngageHub',
@@ -98,9 +100,7 @@ class EmployeeEngagementApp extends StatelessWidget {
             ),
           ),
         ),
-        routes: {
-          AppRoutes.appRestart: (context) => const AppRestartHandler(),
-        },
+        routes: {AppRoutes.appRestart: (context) => const AppRestartHandler()},
         home: AppInitializer(onboardingCompleted: onboardingCompleted),
       ),
     );
@@ -127,17 +127,17 @@ class _AppRestartHandlerState extends State<AppRestartHandler> {
     SecureStorageService.instance
         .read(key: SecureStorageService.onboardingCompletedKey)
         .then((value) {
-      final onboardingCompleted = value == 'true';
+          final onboardingCompleted = value == 'true';
 
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) =>
-                AppInitializer(onboardingCompleted: onboardingCompleted),
-          ),
-        );
-      }
-    });
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (_) =>
+                    AppInitializer(onboardingCompleted: onboardingCompleted),
+              ),
+            );
+          }
+        });
   }
 
   @override
@@ -195,4 +195,3 @@ class _AppInitializerState extends State<AppInitializer> {
     );
   }
 }
-

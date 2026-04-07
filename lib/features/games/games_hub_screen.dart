@@ -6,6 +6,7 @@ import '../../core/widgets/common_widgets.dart';
 import 'sudoku_screen.dart';
 import 'party_games/party_games_screen.dart';
 import '../quiz/quiz_list_screen.dart';
+import '../psychometric/psychometric_tests_screen.dart';
 
 class GamesHubScreen extends StatelessWidget {
   const GamesHubScreen({super.key});
@@ -367,7 +368,9 @@ class GamesHubScreen extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(18),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.black.withValues(alpha: 0.06),
+                                    color: AppColors.black.withValues(
+                                      alpha: 0.06,
+                                    ),
                                     blurRadius: 10,
                                     offset: const Offset(0, 3),
                                   ),
@@ -438,7 +441,82 @@ class GamesHubScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  const SizedBox(height: 100),
+                  const SizedBox(height: 24),
+
+                  // Psychometric Tests
+                  SectionHeader(
+                    title: 'Psychometric Tests',
+                    actionLabel: 'View All',
+                    onAction: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const PsychometricTestsScreen(),
+                      ),
+                    ),
+                  ).animate().fadeIn(delay: 400.ms),
+                  const SizedBox(height: 12),
+                  GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const PsychometricTestsScreen(),
+                      ),
+                    ),
+                    child: AppCard(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 52,
+                              height: 52,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: const Icon(
+                                Icons.psychology_rounded,
+                                color: AppColors.primary,
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Psychometric Tests',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    'Understand your personality type',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(
+                              Icons.arrow_forward_rounded,
+                              color: AppColors.textSecondary,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ).animate().fadeIn(delay: 450.ms),
+                  SizedBox(height: MediaQuery.of(context).padding.bottom + 24),
                 ],
               ),
             ),
@@ -448,4 +526,3 @@ class GamesHubScreen extends StatelessWidget {
     );
   }
 }
-

@@ -55,8 +55,10 @@ class PartyGamesScreen extends StatelessWidget {
             expandedHeight: 150,
             backgroundColor: AppColors.violet,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                  color: AppColors.white),
+              icon: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: AppColors.white,
+              ),
               onPressed: () => Navigator.pop(context),
             ),
             flexibleSpace: FlexibleSpaceBar(
@@ -68,12 +70,15 @@ class PartyGamesScreen extends StatelessWidget {
                     end: Alignment.bottomRight,
                   ),
                 ),
-
               ),
             ),
-            title: Text('Party Games 🎉',
-                style: GoogleFonts.poppins(
-                    color: AppColors.white, fontWeight: FontWeight.w600)),
+            title: Text(
+              'Party Games 🎉',
+              style: GoogleFonts.poppins(
+                color: AppColors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
 
           SliverPadding(
@@ -85,96 +90,114 @@ class PartyGamesScreen extends StatelessWidget {
                 mainAxisSpacing: 14,
                 childAspectRatio: 0.88,
               ),
-              delegate: SliverChildBuilderDelegate(
-                (context, i) {
-                  final g = _games[i];
-                  final color = g['color'] as MaterialColor;
-                  return GestureDetector(
-                    onTap: () {
-                      Widget screen;
-                      switch (i) {
-                        case 0:
-                          screen = const SpinWheelScreen();
-                          break;
-                        case 1:
-                          screen = const BottleSpinScreen();
-                          break;
-                        case 2:
-                          screen = const NamePickScreen();
-                          break;
-                        case 3:
-                          screen = const GroupCreatorScreen();
-                          break;
-                        default:
-                          screen = const ZipGameScreen();
-                      }
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => screen));
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
+              delegate: SliverChildBuilderDelegate((context, i) {
+                final g = _games[i];
+                final color = g['color'] as Color;
+                final lightColor =
+                    Color.lerp(color, Colors.white, 0.2) ?? color;
+                final darkColor = Color.lerp(color, Colors.black, 0.2) ?? color;
+                return GestureDetector(
+                      onTap: () {
+                        Widget screen;
+                        switch (i) {
+                          case 0:
+                            screen = const SpinWheelScreen();
+                            break;
+                          case 1:
+                            screen = const BottleSpinScreen();
+                            break;
+                          case 2:
+                            screen = const NamePickScreen();
+                            break;
+                          case 3:
+                            screen = const GroupCreatorScreen();
+                            break;
+                          default:
+                            screen = const ZipGameScreen();
+                        }
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => screen),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
                               color: color.withValues(alpha: 0.18),
                               blurRadius: 14,
-                              offset: const Offset(0, 5))
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: 56,
-                            height: 56,
-                            decoration: BoxDecoration(
-                              color: color.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(16),
+                              offset: const Offset(0, 5),
                             ),
-                            child: Icon(g['icon'] as IconData,
-                                color: color.shade700, size: 28),
-                          ),
-                          const Spacer(),
-                          Text(g['title'] as String,
-                              style: GoogleFonts.poppins(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 15,
-                                  color: AppColors.textPrimary)),
-                          const SizedBox(height: 4),
-                          Text(g['desc'] as String,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 11,
-                                  color: AppColors.textSecondary,
-                                  height: 1.4),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis),
-                          const SizedBox(height: 10),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [color.shade400, color.shade700],
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 56,
+                              height: 56,
+                              decoration: BoxDecoration(
+                                color: color.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(16),
                               ),
-                              borderRadius: BorderRadius.circular(10),
+                              child: Icon(
+                                g['icon'] as IconData,
+                                color: darkColor,
+                                size: 28,
+                              ),
                             ),
-                            child: Text('Play Now',
+                            const Spacer(),
+                            Text(
+                              g['title'] as String,
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 15,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              g['desc'] as String,
+                              style: GoogleFonts.poppins(
+                                fontSize: 11,
+                                color: AppColors.textSecondary,
+                                height: 1.4,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 10),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [lightColor, darkColor],
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                'Play Now',
                                 style: GoogleFonts.poppins(
-                                    color: AppColors.white,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12)),
-                          ),
-                        ],
+                                  color: AppColors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ).animate().fadeIn(
-                      delay: Duration(milliseconds: 100 + i * 70))
-                      .slideY(begin: 0.08, end: 0);
-                },
-                childCount: _games.length,
-              ),
+                    )
+                    .animate()
+                    .fadeIn(delay: Duration(milliseconds: 100 + i * 70))
+                    .slideY(begin: 0.08, end: 0);
+              }, childCount: _games.length),
             ),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 40)),
@@ -183,4 +206,3 @@ class PartyGamesScreen extends StatelessWidget {
     );
   }
 }
-
