@@ -14,7 +14,6 @@ class ApiException implements Exception {
     if (data is Map<String, dynamic>) {
       return data['message'] as String? ?? 'Something went wrong.';
     }
-
     if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout) {
       return 'Connection timed out. Please try again.';

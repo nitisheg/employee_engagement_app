@@ -51,6 +51,7 @@ class NotificationProvider extends ChangeNotifier {
     }
 
     _errorMessage = null;
+    _successMessage = null;
     notifyListeners();
 
     try {
@@ -58,14 +59,16 @@ class NotificationProvider extends ChangeNotifier {
         page: page,
         limit: limit,
       );
+      final rawNotifications = data['notifications'];
+      if (rawNotifications != null && rawNotifications is! List) {
+        throw const FormatException('Unexpected notifications format.');
+      }
+
       final notificationList =
-          (data['notifications'] as List?)
-              ?.map(
-                (json) =>
-                    NotificationModel.fromJson(json as Map<String, dynamic>),
-              )
-              .toList() ??
-          [];
+          (rawNotifications as List<dynamic>? ?? <dynamic>[])
+              .whereType<Map<String, dynamic>>()
+              .map(NotificationModel.fromJson)
+              .toList();
 
       if (isFirstPage) {
         _notifications = notificationList;
@@ -97,11 +100,19 @@ class NotificationProvider extends ChangeNotifier {
         _hasMore = notificationList.length >= limit;
       }
 
-      _unreadCount = (data['unreadCount'] as int?) ?? 0;
+      final unread = data['unreadCount'];
+      if (unread is int) {
+        _unreadCount = unread;
+      } else {
+        _unreadCount = _notifications.where((n) => !n.isRead).length;
+      }
       AppLogger.success(_tag, 'fetchNotifications succeeded');
     } on DioException catch (e) {
       _errorMessage = ApiException.fromDioException(e);
       AppLogger.error(_tag, 'fetchNotifications DioException', e);
+    } on FormatException catch (e) {
+      _errorMessage = e.message;
+      AppLogger.error(_tag, 'fetchNotifications format error', e);
     } catch (e) {
       _errorMessage = e.toString();
       AppLogger.error(_tag, 'fetchNotifications error', e);
@@ -123,32 +134,55 @@ class NotificationProvider extends ChangeNotifier {
 
   Future<bool> markAsRead(String notificationId) async {
     AppLogger.info(_tag, 'markAsRead called');
+    _errorMessage = null;
     try {
-      await _notificationApi.markNotificationAsRead(notificationId);
+      final data = await _notificationApi.markNotificationAsRead(
+        notificationId,
+      );
+      final serverNotification = data['notification'];
+      NotificationModel? updatedNotification;
+      if (serverNotification is Map<String, dynamic>) {
+        updatedNotification = NotificationModel.fromJson(serverNotification);
+      }
+
       _notifications = _notifications.map((n) {
         if (n.id == notificationId) {
-          return NotificationModel(
-            id: n.id,
-            userId: n.userId,
-            title: n.title,
-            message: n.message,
-            type: n.type,
-            relatedId: n.relatedId,
-            relatedType: n.relatedType,
-            isRead: true,
-            createdAt: n.createdAt,
-            readAt: DateTime.now(),
-          );
+          if (updatedNotification != null) {
+            return n.copyWith(
+              title: updatedNotification.title,
+              message: updatedNotification.message,
+              type: updatedNotification.type,
+              isRead: updatedNotification.isRead,
+              readAt: updatedNotification.readAt ?? DateTime.now(),
+            );
+          }
+          return n.copyWith(isRead: true, readAt: DateTime.now());
         }
         return n;
       }).toList();
-      if (_unreadCount > 0) _unreadCount--;
+
+      _unreadCount = _notifications.where((n) => !n.isRead).length;
       AppLogger.success(_tag, 'markAsRead succeeded');
       notifyListeners();
       return true;
     } on DioException catch (e) {
+      if (_isRouteNotFound(e)) {
+        AppLogger.warning(
+          _tag,
+          'markAsRead route missing on backend, applying local update',
+        );
+        _applyLocalRead(notificationId);
+        notifyListeners();
+        return true;
+      }
+
       _errorMessage = ApiException.fromDioException(e);
       AppLogger.error(_tag, 'markAsRead DioException', e);
+      notifyListeners();
+      return false;
+    } on FormatException catch (e) {
+      _errorMessage = e.message;
+      AppLogger.error(_tag, 'markAsRead format error', e);
       notifyListeners();
       return false;
     } catch (e) {
@@ -161,31 +195,37 @@ class NotificationProvider extends ChangeNotifier {
 
   Future<bool> markAllAsRead() async {
     AppLogger.info(_tag, 'markAllAsRead called');
+    _errorMessage = null;
     try {
       await _notificationApi.markAllNotificationsAsRead();
       _notifications = _notifications
-          .map(
-            (n) => NotificationModel(
-              id: n.id,
-              userId: n.userId,
-              title: n.title,
-              message: n.message,
-              type: n.type,
-              relatedId: n.relatedId,
-              relatedType: n.relatedType,
-              isRead: true,
-              createdAt: n.createdAt,
-              readAt: DateTime.now(),
-            ),
-          )
+          .map((n) => n.copyWith(isRead: true, readAt: DateTime.now()))
           .toList();
       _unreadCount = 0;
       AppLogger.success(_tag, 'markAllAsRead succeeded');
       notifyListeners();
       return true;
     } on DioException catch (e) {
+      if (_isRouteNotFound(e)) {
+        AppLogger.warning(
+          _tag,
+          'markAllAsRead route missing on backend, applying local update',
+        );
+        _notifications = _notifications
+            .map((n) => n.copyWith(isRead: true, readAt: DateTime.now()))
+            .toList();
+        _unreadCount = 0;
+        notifyListeners();
+        return true;
+      }
+
       _errorMessage = ApiException.fromDioException(e);
       AppLogger.error(_tag, 'markAllAsRead DioException', e);
+      notifyListeners();
+      return false;
+    } on FormatException catch (e) {
+      _errorMessage = e.message;
+      AppLogger.error(_tag, 'markAllAsRead format error', e);
       notifyListeners();
       return false;
     } catch (e) {
@@ -257,5 +297,20 @@ class NotificationProvider extends ChangeNotifier {
     _errorMessage = null;
     _successMessage = null;
     notifyListeners();
+  }
+
+  void _applyLocalRead(String notificationId) {
+    _notifications = _notifications.map((n) {
+      if (n.id == notificationId) {
+        return n.copyWith(isRead: true, readAt: DateTime.now());
+      }
+      return n;
+    }).toList();
+    _unreadCount = _notifications.where((n) => !n.isRead).length;
+  }
+
+  bool _isRouteNotFound(DioException e) {
+    final statusCode = e.response?.statusCode;
+    return statusCode == 404;
   }
 }

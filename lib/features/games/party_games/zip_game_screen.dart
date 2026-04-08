@@ -1,6 +1,5 @@
-import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_colors.dart';
 
@@ -12,503 +11,466 @@ class ZipGameScreen extends StatefulWidget {
 }
 
 class _ZipGameScreenState extends State<ZipGameScreen> {
-  static const List<Map<String, String>> _prompts = [
-    {'prompt': 'Name a fruit', 'example': 'Apple, Mango, ...'},
-    {'prompt': 'Name a country', 'example': 'India, Brazil, ...'},
-    {'prompt': 'Name an animal', 'example': 'Lion, Eagle, ...'},
-    {'prompt': 'Name a color', 'example': 'Red, Cerulean, ...'},
-    {'prompt': 'Name a sport', 'example': 'Cricket, Tennis, ...'},
-    {'prompt': 'Name a programming language', 'example': 'Dart, Python, ...'},
-    {'prompt': 'Name a car brand', 'example': 'BMW, Toyota, ...'},
-    {'prompt': 'Name a planet', 'example': 'Mars, Jupiter, ...'},
+  static const int _rows = 6;
+  static const int _cols = 6;
+
+  static const List<Cell> _solution = [
+    Cell(0, 0),
+    Cell(0, 1),
+    Cell(0, 2),
+    Cell(0, 3),
+    Cell(0, 4),
+    Cell(0, 5),
+    Cell(1, 5),
+    Cell(1, 4),
+    Cell(1, 3),
+    Cell(1, 2),
+    Cell(1, 1),
+    Cell(1, 0),
+    Cell(2, 0),
+    Cell(2, 1),
+    Cell(2, 2),
+    Cell(2, 3),
+    Cell(2, 4),
+    Cell(2, 5),
+    Cell(3, 5),
+    Cell(3, 4),
+    Cell(3, 3),
+    Cell(3, 2),
+    Cell(3, 1),
+    Cell(3, 0),
+    Cell(4, 0),
+    Cell(4, 1),
+    Cell(4, 2),
+    Cell(4, 3),
+    Cell(4, 4),
+    Cell(4, 5),
+    Cell(5, 5),
+    Cell(5, 4),
+    Cell(5, 3),
+    Cell(5, 2),
+    Cell(5, 1),
+    Cell(5, 0),
   ];
 
-  int _currentPromptIndex = 0;
-  int _score = 0;
-  int _timeLeft = 5;
-  bool _gameStarted = false;
-  bool _gameOver = false;
-  bool _answered = false;
-  Timer? _timer;
+  static final Map<Cell, int> _clues = {
+    Cell(0, 0): 1,
+    Cell(1, 3): 2,
+    Cell(2, 3): 3,
+    Cell(3, 2): 4,
+    Cell(4, 5): 5,
+    Cell(5, 0): 6,
+  };
 
-  final TextEditingController _answerCtrl = TextEditingController();
-  final List<Map<String, dynamic>> _history = [];
+  List<Cell> _path = <Cell>[];
+  int _nextRequired = 2;
+  bool _isSolved = false;
+  String _statusText = 'Drag from 1 to connect all cells.';
 
-  void _startGame() {
+  int get _maxClue => _clues.values.reduce(max);
+
+  void _clearBoard() {
     setState(() {
-      _gameStarted = true;
-      _gameOver = false;
-      _score = 0;
-      _currentPromptIndex = 0;
-      _history.clear();
-      _answered = false;
+      _path = <Cell>[];
+      _nextRequired = 2;
+      _isSolved = false;
+      _statusText = 'Board cleared. Start from 1.';
     });
-    _startRound();
   }
 
-  void _startRound() {
-    _answerCtrl.clear();
+  void _applyHint() {
+    if (_isSolved) return;
+
+    if (_path.isEmpty) {
+      setState(() {
+        _path = <Cell>[_solution.first];
+        _statusText = 'Hint: start at 1 and keep going.';
+      });
+      return;
+    }
+
+    final prefix = _matchingPrefixLength();
+    if (prefix < _path.length || prefix >= _solution.length) {
+      setState(() {
+        _statusText = 'Hint unavailable here. Use Clear and try again.';
+      });
+      return;
+    }
+
+    final nextCell = _solution[prefix];
+    if (_canExtendTo(nextCell)) {
+      _extendTo(nextCell);
+      setState(() {
+        _statusText = 'Hint added.';
+      });
+    }
+  }
+
+  int _matchingPrefixLength() {
+    var i = 0;
+    while (i < _path.length &&
+        i < _solution.length &&
+        _path[i] == _solution[i]) {
+      i++;
+    }
+    return i;
+  }
+
+  bool _inBounds(Cell cell) {
+    return cell.row >= 0 &&
+        cell.row < _rows &&
+        cell.col >= 0 &&
+        cell.col < _cols;
+  }
+
+  bool _isAdjacent(Cell a, Cell b) {
+    return (a.row - b.row).abs() + (a.col - b.col).abs() == 1;
+  }
+
+  bool _canExtendTo(Cell cell) {
+    if (!_inBounds(cell)) return false;
+
+    if (_path.isEmpty) {
+      return _clues[cell] == 1;
+    }
+
+    final last = _path.last;
+    if (cell == last) return false;
+    if (!_isAdjacent(last, cell)) return false;
+
+    if (_path.length > 1 && cell == _path[_path.length - 2]) {
+      return true;
+    }
+
+    if (_path.contains(cell)) return false;
+
+    final clue = _clues[cell];
+    if (clue != null && clue != _nextRequired) return false;
+
+    return true;
+  }
+
+  void _extendTo(Cell cell) {
+    if (!_canExtendTo(cell) || _isSolved) return;
+
     setState(() {
-      _timeLeft = 5;
-      _answered = false;
-    });
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (_timeLeft <= 1) {
-        t.cancel();
-        _handleTimeout();
+      if (_path.isNotEmpty &&
+          _path.length > 1 &&
+          cell == _path[_path.length - 2]) {
+        final removed = _path.removeLast();
+        final removedClue = _clues[removed];
+        if (removedClue != null &&
+            removedClue == _nextRequired - 1 &&
+            removedClue > 1) {
+          _nextRequired--;
+        }
+        _statusText = 'Backtracked.';
+        return;
+      }
+
+      _path.add(cell);
+
+      final clue = _clues[cell];
+      if (clue != null && clue == _nextRequired) {
+        _nextRequired++;
+      }
+
+      final filledAll = _path.length == _rows * _cols;
+      final visitedAllNumbers = _nextRequired == _maxClue + 1;
+      final endedAtLast = _clues[cell] == _maxClue;
+
+      if (filledAll && visitedAllNumbers && endedAtLast) {
+        _isSolved = true;
+        _statusText = 'Solved! Great run.';
       } else {
-        setState(() => _timeLeft--);
+        _statusText = 'Connect $_nextRequired next.';
       }
     });
   }
 
-  void _handleTimeout() {
-    if (_answered) return;
-    _history.add({
-      'prompt': _prompts[_currentPromptIndex]['prompt'],
-      'answer': '(no answer)',
-      'correct': false,
-    });
-    _nextRound();
-  }
-
-  void _submitAnswer() {
-    if (_answered) return;
-    _timer?.cancel();
-    final answer = _answerCtrl.text.trim();
-    final isValid = answer.length >= 2;
-    setState(() {
-      _answered = true;
-      if (isValid) _score += _timeLeft * 10;
-      _history.add({
-        'prompt': _prompts[_currentPromptIndex]['prompt'],
-        'answer': answer.isEmpty ? '(skipped)' : answer,
-        'correct': isValid,
-      });
-    });
-    Future.delayed(const Duration(milliseconds: 600), _nextRound);
-  }
-
-  void _nextRound() {
-    if (_currentPromptIndex >= _prompts.length - 1) {
-      setState(() => _gameOver = true);
-      return;
+  Cell? _cellFromOffset(Offset offset, double boardSide) {
+    if (offset.dx < 0 ||
+        offset.dy < 0 ||
+        offset.dx >= boardSide ||
+        offset.dy >= boardSide) {
+      return null;
     }
-    setState(() => _currentPromptIndex++);
-    _startRound();
-  }
 
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _answerCtrl.dispose();
-    super.dispose();
+    final cellSize = boardSide / _cols;
+    final col = offset.dx ~/ cellSize;
+    final row = offset.dy ~/ cellSize;
+    final cell = Cell(row, col);
+    return _inBounds(cell) ? cell : null;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A0000),
+      backgroundColor: const Color(0xFFF3F2EF),
       appBar: AppBar(
-        backgroundColor: AppColors.transparent,
+        backgroundColor: AppColors.white,
         elevation: 0,
+        foregroundColor: AppColors.black,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppColors.white),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppColors.black,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Zip Game ⚡',
-            style: GoogleFonts.poppins(
-                color: AppColors.white, fontWeight: FontWeight.w700)),
+        title: Text(
+          'Zip',
+          style: GoogleFonts.poppins(
+            color: AppColors.black,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         centerTitle: true,
         actions: [
-          if (_gameStarted && !_gameOver)
-            Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: Center(
-                child: Text('$_score pts',
-                    style: GoogleFonts.poppins(
-                        color: AppColors.errorAccent,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16)),
+          TextButton(
+            onPressed: _clearBoard,
+            child: Text(
+              'Clear',
+              style: GoogleFonts.poppins(
+                color: AppColors.black,
+                fontWeight: FontWeight.w600,
               ),
             ),
+          ),
+          TextButton(
+            onPressed: _applyHint,
+            child: Text(
+              'Hint',
+              style: GoogleFonts.poppins(
+                color: const Color(0xFF0A66C2),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
         ],
       ),
       body: SafeArea(
-        top: false,
-        child: !_gameStarted
-            ? _buildStartScreen()
-            : _gameOver
-                ? _buildResultScreen()
-                : _buildGameScreen(),
-      ),
-    );
-  }
-
-  Widget _buildStartScreen() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('⚡', style: TextStyle(fontSize: 80))
-                .animate()
-                .scale(duration: 600.ms, curve: Curves.elasticOut),
-            const SizedBox(height: 20),
-            Text('Zip Game',
-                style: GoogleFonts.poppins(
-                    color: AppColors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 32)),
-            const SizedBox(height: 12),
-            Text(
-              'Answer ${_prompts.length} prompts as fast as possible!\nYou have 5 seconds per question.\nMore time left = more points!',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                  color: AppColors.white.withValues(alpha: 0.7),
-                  fontSize: 14,
-                  height: 1.6),
-            ),
-            const SizedBox(height: 40),
-            GestureDetector(
-              onTap: _startGame,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 48, vertical: 16),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFDC2626), Color(0xFF991B1B)],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                        color: Colors.red.withValues(alpha: 0.4),
-                        blurRadius: 16,
-                        offset: const Offset(0, 6))
-                  ],
-                ),
-                child: Text('Start Game ⚡',
-                    style: GoogleFonts.poppins(
-                        color: AppColors.white,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 18)),
-              ),
-            ).animate().fadeIn(delay: 300.ms),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGameScreen() {
-    final prompt = _prompts[_currentPromptIndex];
-    final timerColor = _timeLeft <= 2 ? Colors.red : AppColors.errorAccent;
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          // Progress
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
             children: [
-              Text(
-                'Q ${_currentPromptIndex + 1}/${_prompts.length}',
-                style: GoogleFonts.poppins(
-                    color: AppColors.white.withValues(alpha: 0.7),
-                    fontSize: 14),
-              ),
-              Text('$_score pts',
-                  style: GoogleFonts.poppins(
-                      color: AppColors.errorAccent,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: (_currentPromptIndex + 1) / _prompts.length,
-              backgroundColor: AppColors.white.withValues(alpha: 0.1),
-              valueColor:
-                  const AlwaysStoppedAnimation(AppColors.errorAccent),
-              minHeight: 6,
-            ),
-          ),
-          const SizedBox(height: 32),
-
-          // Timer circle
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: timerColor.withValues(alpha: 0.15),
-              border: Border.all(color: timerColor, width: 4),
-            ),
-            child: Center(
-              child: Text('$_timeLeft',
-                  style: GoogleFonts.poppins(
-                      color: timerColor,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 40)),
-            ),
-          ).animate(target: _timeLeft <= 2 ? 1 : 0).shake(),
-          const SizedBox(height: 32),
-
-          // Prompt card
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            child: Container(
-              key: ValueKey(_currentPromptIndex),
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppColors.white.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                    color: AppColors.errorAccent.withValues(alpha: 0.4)),
-              ),
-              child: Column(
-                children: [
-                  Text(prompt['prompt']!,
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(
-                          color: AppColors.white,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 22)),
-                  const SizedBox(height: 6),
-                  Text(prompt['example']!,
-                      style: GoogleFonts.poppins(
-                          color: AppColors.white.withValues(alpha: 0.5),
-                          fontSize: 13)),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // Answer input
-          TextField(
-            controller: _answerCtrl,
-            style: GoogleFonts.poppins(color: AppColors.white, fontSize: 18),
-            decoration: InputDecoration(
-              hintText: 'Type your answer...',
-              hintStyle: GoogleFonts.poppins(
-                  color: AppColors.white.withValues(alpha: 0.3),
-                  fontSize: 16),
-              filled: true,
-              fillColor: AppColors.white.withValues(alpha: 0.08),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(
-                    color: AppColors.errorAccent.withValues(alpha: 0.4)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(
-                    color: AppColors.errorAccent.withValues(alpha: 0.4)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(
-                    color: AppColors.errorAccent, width: 2),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 14),
-            ),
-            onSubmitted: (_) => _submitAnswer(),
-          ),
-          const SizedBox(height: 16),
-
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    _answerCtrl.clear();
-                    _submitAnswer();
-                  },
-                  child: Container(
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                          color: AppColors.white.withValues(alpha: 0.2)),
-                    ),
-                    child: Center(
-                      child: Text('Skip',
-                          style: GoogleFonts.poppins(
-                              color: AppColors.white.withValues(alpha: 0.7),
-                              fontWeight: FontWeight.w600)),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 2,
-                child: GestureDetector(
-                  onTap: _submitAnswer,
-                  child: Container(
-                    height: 50,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFDC2626), Color(0xFF991B1B)],
-                      ),
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                            color: Colors.red.withValues(alpha: 0.4),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4))
-                      ],
-                    ),
-                    child: Center(
-                      child: Text('Submit ⚡',
-                          style: GoogleFonts.poppins(
-                              color: AppColors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15)),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildResultScreen() {
-    final correct = _history.where((h) => h['correct'] == true).length;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('⚡', style: TextStyle(fontSize: 64))
-                .animate()
-                .scale(duration: 500.ms, curve: Curves.elasticOut),
-            const SizedBox(height: 16),
-            Text('Game Over!',
-                style: GoogleFonts.poppins(
-                    color: AppColors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 28)),
-            const SizedBox(height: 8),
-            Text('Final Score: $_score pts',
-                style: GoogleFonts.poppins(
-                    color: AppColors.errorAccent,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 20)),
-            Text('$correct / ${_prompts.length} answered',
-                style: GoogleFonts.poppins(
-                    color: AppColors.white.withValues(alpha: 0.6),
-                    fontSize: 14)),
-            const SizedBox(height: 24),
-            // History
-            Container(
-              constraints: const BoxConstraints(maxHeight: 250),
-              decoration: BoxDecoration(
-                color: AppColors.white.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: ListView.builder(
-                shrinkWrap: true,
-                padding: const EdgeInsets.all(12),
-                itemCount: _history.length,
-                itemBuilder: (_, i) {
-                  final item = _history[i];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      children: [
-                        Icon(
-                          item['correct'] == true
-                              ? Icons.check_circle_rounded
-                              : Icons.cancel_rounded,
-                          color: item['correct'] == true
-                              ? AppColors.success
-                              : AppColors.errorAccent,
-                          size: 18,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            '${item['prompt']}: ${item['answer']}',
-                            style: GoogleFonts.poppins(
-                                color: AppColors.white.withValues(alpha: 0.8),
-                                fontSize: 12),
+              const SizedBox(height: 6),
+              AspectRatio(
+                aspectRatio: 1,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final boardSide = min(
+                      constraints.maxWidth,
+                      constraints.maxHeight,
+                    );
+                    return Center(
+                      child: GestureDetector(
+                        onPanStart: (details) {
+                          final cell = _cellFromOffset(
+                            details.localPosition,
+                            boardSide,
+                          );
+                          if (cell != null) _extendTo(cell);
+                        },
+                        onPanUpdate: (details) {
+                          final cell = _cellFromOffset(
+                            details.localPosition,
+                            boardSide,
+                          );
+                          if (cell != null) _extendTo(cell);
+                        },
+                        child: SizedBox(
+                          width: boardSide,
+                          height: boardSide,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(22),
+                            child: CustomPaint(
+                              painter: _ZipBoardPainter(
+                                rows: _rows,
+                                cols: _cols,
+                                path: _path,
+                                clues: _clues,
+                              ),
+                            ),
                           ),
                         ),
-                      ],
-                    ),
-                  );
-                },
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: AppColors.white.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                            color: AppColors.white.withValues(alpha: 0.2)),
-                      ),
-                      child: Center(
-                        child: Text('Exit',
-                            style: GoogleFonts.poppins(
-                                color: AppColors.white,
-                                fontWeight: FontWeight.w600)),
-                      ),
-                    ),
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  _statusText,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: _isSolved
+                        ? AppColors.success
+                        : AppColors.textPrimary,
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 2,
-                  child: GestureDetector(
-                    onTap: _startGame,
-                    child: Container(
-                      height: 50,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFDC2626), Color(0xFF991B1B)],
-                        ),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Center(
-                        child: Text('Play Again ⚡',
-                            style: GoogleFonts.poppins(
-                                color: AppColors.white,
-                                fontWeight: FontWeight.w700)),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'How to play',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '1. Start from circle 1.',
+                      style: GoogleFonts.poppins(fontSize: 12),
+                    ),
+                    Text(
+                      '2. Drag orthogonally to connect 2, 3, ... in order.',
+                      style: GoogleFonts.poppins(fontSize: 12),
+                    ),
+                    Text(
+                      '3. Fill every grid cell with one continuous path.',
+                      style: GoogleFonts.poppins(fontSize: 12),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
+class Cell {
+  final int row;
+  final int col;
+
+  const Cell(this.row, this.col);
+
+  @override
+  bool operator ==(Object other) {
+    return other is Cell && other.row == row && other.col == col;
+  }
+
+  @override
+  int get hashCode => Object.hash(row, col);
+}
+
+class _ZipBoardPainter extends CustomPainter {
+  final int rows;
+  final int cols;
+  final List<Cell> path;
+  final Map<Cell, int> clues;
+
+  const _ZipBoardPainter({
+    required this.rows,
+    required this.cols,
+    required this.path,
+    required this.clues,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final bgPaint = Paint()..color = const Color(0xFFF8F8F8);
+    canvas.drawRect(Offset.zero & size, bgPaint);
+
+    final cellSize = size.width / cols;
+
+    final gridPaint = Paint()
+      ..color = const Color(0xFFB0B0B0)
+      ..strokeWidth = 1;
+
+    for (var r = 0; r <= rows; r++) {
+      final y = r * cellSize;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
+    }
+    for (var c = 0; c <= cols; c++) {
+      final x = c * cellSize;
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
+    }
+
+    final visitedPaint = Paint()..color = const Color(0x1A0A66C2);
+    for (final cell in path) {
+      final rect = Rect.fromLTWH(
+        cell.col * cellSize,
+        cell.row * cellSize,
+        cellSize,
+        cellSize,
+      );
+      canvas.drawRect(rect, visitedPaint);
+    }
+
+    final linePaint = Paint()
+      ..color = Colors.black
+      ..strokeWidth = cellSize * 0.20
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    for (var i = 1; i < path.length; i++) {
+      final a = path[i - 1];
+      final b = path[i];
+      final p1 = Offset((a.col + 0.5) * cellSize, (a.row + 0.5) * cellSize);
+      final p2 = Offset((b.col + 0.5) * cellSize, (b.row + 0.5) * cellSize);
+      canvas.drawLine(p1, p2, linePaint);
+    }
+
+    for (final entry in clues.entries) {
+      final cell = entry.key;
+      final number = entry.value;
+      final center = Offset(
+        (cell.col + 0.5) * cellSize,
+        (cell.row + 0.5) * cellSize,
+      );
+
+      final circlePaint = Paint()..color = Colors.black;
+      canvas.drawCircle(center, cellSize * 0.28, circlePaint);
+
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: '$number',
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontSize: cellSize * 0.28,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+
+      textPainter.paint(
+        canvas,
+        Offset(
+          center.dx - textPainter.width / 2,
+          center.dy - textPainter.height / 2,
+        ),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _ZipBoardPainter oldDelegate) {
+    return oldDelegate.path != path || oldDelegate.clues != clues;
+  }
+}

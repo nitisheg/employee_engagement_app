@@ -30,7 +30,10 @@ class ApiClient {
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-          AppLogger.network('ApiClient', '-> ${options.method} ${options.path}');
+          AppLogger.network(
+            'ApiClient',
+            '-> ${options.method} ${options.path}',
+          );
           handler.next(options);
         },
         onResponse: (response, handler) {
@@ -53,30 +56,38 @@ class ApiClient {
     dio.interceptors.add(_AuthInterceptor(dio, _storage, _cookieJar));
     if (kDebugMode) {
       dio.interceptors.add(
-       LogInterceptor(
-        request: false,
-        requestBody: true,
-        responseBody: true,
-        error: true,
-        requestHeader: false,
-        responseHeader: false,
-        logPrint: (object) => debugPrint(object.toString()),
-      ),
+        LogInterceptor(
+          request: false,
+          requestBody: true,
+          responseBody: true,
+          error: true,
+          requestHeader: false,
+          responseHeader: false,
+          logPrint: (object) => debugPrint(object.toString()),
+        ),
       );
     }
   }
 
-  Future<void> saveToken(String token) =>
-      _storage.saveAccessToken(token);
+  Future<void> saveToken(String token) => _storage.saveAccessToken(token);
 
-    Future<void> clearToken() => _storage.clearAccessToken();
+  Future<void> clearToken() => _storage.clearAccessToken();
 
-    Future<String?> getToken() => _storage.getAccessToken();
+  Future<String?> getToken() => _storage.getAccessToken();
 
   static dynamic _unwrapResponse(dynamic responseData) {
     if (responseData is Map<String, dynamic> &&
         responseData.containsKey('data')) {
-      return responseData['data'];
+      final dynamic data = responseData['data'];
+      if (data is Map<String, dynamic>) {
+        final Map<String, dynamic> unwrapped = Map<String, dynamic>.from(data);
+        final dynamic pagination = responseData['pagination'];
+        if (pagination is Map<String, dynamic>) {
+          unwrapped['pagination'] = pagination;
+        }
+        return unwrapped;
+      }
+      return data;
     }
     return responseData;
   }
@@ -117,8 +128,9 @@ class _AuthInterceptor extends Interceptor {
         final Dio refreshDio = Dio(BaseOptions(baseUrl: ApiClient.baseUrl));
         refreshDio.interceptors.add(CookieManager(_cookieJar));
 
-        final Response<dynamic> response =
-          await refreshDio.post<dynamic>(ApiConstants.refreshEndpoint);
+        final Response<dynamic> response = await refreshDio.post<dynamic>(
+          ApiConstants.refreshEndpoint,
+        );
         final String? newToken =
             (response.data as Map<String, dynamic>?)?['accessToken'] as String?;
 

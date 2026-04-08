@@ -56,13 +56,16 @@ class NotificationModel {
   };
 
   String get icon {
-    switch (type.toLowerCase()) {
+    final normalizedType = type.toLowerCase();
+    if (normalizedType.startsWith('quiz')) {
+      return '📝';
+    }
+
+    switch (normalizedType) {
       case 'achievement':
         return '🏆';
       case 'challenge':
         return '⚡';
-      case 'quiz':
-        return '📝';
       case 'event':
         return '📅';
       default:
@@ -96,4 +99,3 @@ class NotificationModel {
     );
   }
 }
-

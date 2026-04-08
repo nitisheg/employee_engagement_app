@@ -37,19 +37,16 @@ class HomeScreen extends StatelessWidget {
     final authProvider = context.watch<AuthProvider>();
     final user = authProvider.user;
     final dashboard = authProvider.dashboard;
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.primaryDark,
         titleSpacing: 0,
-
         title: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                // 👈 prevents overflow
                 child: Row(
                   children: [
                     Container(
@@ -695,4 +692,3 @@ class _ChallengeCard extends StatelessWidget {
     );
   }
 }
-
