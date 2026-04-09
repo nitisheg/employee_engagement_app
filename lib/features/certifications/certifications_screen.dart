@@ -27,6 +27,16 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
   File? _selectedFile;
 
   @override
+  void initState() {
+    super.initState();
+    // Ensure certifications are loaded when the screen opens
+    Future.microtask(() {
+      final provider = Provider.of<CertificationsProvider>(context, listen: false);
+      provider.fetchCertifications();
+    });
+  }
+
+  @override
   void dispose() {
     _nameCtrl.dispose();
     _orgCtrl.dispose();

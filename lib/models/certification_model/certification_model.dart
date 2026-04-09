@@ -28,30 +28,33 @@ class CertificateRequestModel {
   });
 
   factory CertificateRequestModel.fromJson(Map<String, dynamic> json) {
+    DateTime parseDate(dynamic value) {
+      if (value == null || value.toString().isEmpty) {
+        return DateTime.now();
+      }
+      return DateTime.tryParse(value.toString()) ?? DateTime.now();
+    }
+
+    DateTime? parseNullableDate(dynamic value) {
+      if (value == null || value.toString().isEmpty) {
+        return null;
+      }
+      return DateTime.tryParse(value.toString());
+    }
+
     return CertificateRequestModel(
-      id: json['_id'] ?? json['id'] ?? '',
-      certificateId: json['certificate_id'] ?? '',
-      title: json['title'] ?? '',
-      description: json['description'],
-      issuer: json['issuer'] ?? '',
-      status: json['status'] ?? '',
-      adminComment: json['admin_comment'],
-      createdAt: DateTime.parse(
-        json['createdAt'] ??
-            json['created_at'] ??
-            DateTime.now().toIso8601String(),
-      ),
-      reviewedAt: (json['reviewed_at'] != null && json['reviewed_at'] != '')
-          ? DateTime.tryParse(json['reviewed_at'])
-          : null,
-      issueDate: DateTime.parse(
-        json['issue_date'] ?? DateTime.now().toIso8601String(),
-      ),
-      completionDate:
-          (json['completion_date'] != null && json['completion_date'] != '')
-          ? DateTime.tryParse(json['completion_date'])
-          : null,
-      certificateUrl: json['certificate_url'] ?? '',
+      id: (json['_id'] ?? json['id'] ?? '').toString(),
+      certificateId: (json['certificate_id'] ?? '').toString(),
+      title: (json['title'] ?? '').toString(),
+      description: json['description']?.toString(),
+      issuer: (json['issuer'] ?? '').toString(),
+      status: (json['status'] ?? '').toString(),
+      adminComment: json['admin_comment']?.toString(),
+      createdAt: parseDate(json['createdAt'] ?? json['created_at']),
+      reviewedAt: parseNullableDate(json['reviewed_at']),
+      issueDate: parseDate(json['issue_date']),
+      completionDate: parseNullableDate(json['completion_date']),
+      certificateUrl: (json['certificate_url'] ?? '').toString(),
     );
   }
 }

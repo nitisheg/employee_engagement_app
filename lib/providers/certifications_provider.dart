@@ -1,14 +1,11 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:dio/dio.dart';
 import '../models/certification_model.dart';
 import '../services/api_service.dart';
 import '../core/utils/app_logger.dart';
 
 class CertificationsProvider extends ChangeNotifier {
   static const _tag = 'CertificationsProvider';
-
-  final Dio _dio = ApiClient.instance.dio;
 
   late final CertificationsApiService _apiService = CertificationsApiService(
     ApiClient.instance.dio,
@@ -35,9 +32,7 @@ class CertificationsProvider extends ChangeNotifier {
 
     try {
       final data = await _apiService.getCertificates(status: status);
-
       _certifications = data;
-
       AppLogger.success(_tag, 'Certificates loaded: ${data.length}');
     } catch (e) {
       _errorMessage = e.toString();
