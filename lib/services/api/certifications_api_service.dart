@@ -79,9 +79,7 @@ class CertificationsApiService {
       final response = await dio.get(
         "/api/user/certificates/requests",
         queryParameters: {if (status != null) "status": status},
-      );
-      // Safely access nested keys to avoid null crash
-      List list = [];
+      ); 
       final data = response.data;
 
       final List requests =
