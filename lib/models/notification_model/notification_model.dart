@@ -3,9 +3,9 @@ class NotificationModel {
   final String userId;
   final String title;
   final String message;
-  final String type; // 'achievement', 'challenge', 'quiz', 'event', 'general'
-  final String? relatedId; // ID of the related resource
-  final String? relatedType; // Type of related resource
+  final String type; 
+  final String? relatedId; 
+  final String? relatedType; 
   final bool isRead;
   final DateTime createdAt;
   final DateTime? readAt;

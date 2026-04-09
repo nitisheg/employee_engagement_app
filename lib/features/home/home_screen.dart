@@ -328,8 +328,6 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ).animate().fadeIn(delay: 150.ms).slideX(begin: 0.1, end: 0),
                   const SizedBox(height: 24),
-
-                  // Active Challenges
                   SectionHeader(
                     title: 'Active Challenges',
                     actionLabel: 'View All',

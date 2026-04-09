@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../models/certification_model.dart';
@@ -9,122 +10,109 @@ class CertificationsProvider extends ChangeNotifier {
 
   final Dio _dio = ApiClient.instance.dio;
 
+  late final CertificationsApiService _apiService = CertificationsApiService(
+    ApiClient.instance.dio,
+  );
+
   bool _isLoading = false;
+  bool _isUploading = false;
+
   String? _errorMessage;
-  List<CertificationModel> _certifications = [];
+
+  List<CertificateRequestModel> _certifications = [];
 
   bool get isLoading => _isLoading;
+  bool get isUploading => _isUploading;
   String? get errorMessage => _errorMessage;
-  List<CertificationModel> get certifications => _certifications;
+  List<CertificateRequestModel> get certifications => _certifications;
 
-  Future<void> fetchCertifications() async {
+  Future<void> fetchCertifications({String? status}) async {
     AppLogger.info(_tag, 'fetchCertifications called');
+
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      // TODO: Update endpoint based on API documentation
-      final resp = await _dio.get<Map<String, dynamic>>('/api/certifications');
-      final certifications =
-          (resp.data!['certifications'] as List?)
-              ?.map(
-                (json) =>
-                    CertificationModel.fromJson(json as Map<String, dynamic>),
-              )
-              .toList() ??
-          [];
-      _certifications = certifications;
-      AppLogger.success(_tag, 'fetchCertifications succeeded');
-    } on DioException catch (e) {
-      _errorMessage = ApiException.fromDioException(e);
-      AppLogger.error(_tag, 'fetchCertifications DioException', e);
+      final data = await _apiService.getCertificates(status: status);
+
+      _certifications = data;
+
+      AppLogger.success(_tag, 'Certificates loaded: ${data.length}');
     } catch (e) {
       _errorMessage = e.toString();
-      AppLogger.error(_tag, 'fetchCertifications error', e);
+      AppLogger.error(_tag, 'fetch error', e);
     }
 
     _isLoading = false;
     notifyListeners();
   }
 
-  Future<bool> addCertification(CertificationModel certification) async {
-    AppLogger.info(_tag, 'addCertification called');
+  Future<bool> uploadCertificate({
+    required String certificateId,
+    required String title,
+    required String issuer,
+    required String issueDate,
+    String? completionDate,
+    String? description,
+    required File file,
+  }) async {
+    AppLogger.info(_tag, 'uploadCertificate called');
+
+    _isUploading = true;
+    _errorMessage = null;
+    notifyListeners();
+
     try {
-      // TODO: Update endpoint based on API documentation
-      await _dio.post<dynamic>(
-        '/api/certifications',
-        data: certification.toJson(),
+      final fileSizeMB = await file.length() / (1024 * 1024);
+
+      if (fileSizeMB > 5) {
+        _errorMessage = "File must be less than 5MB";
+        AppLogger.warning(_tag, 'File too large');
+        return false;
+      }
+
+      final success = await _apiService.submitCertificate(
+        certificateId: certificateId,
+        title: title,
+        issuer: issuer,
+        issueDate: issueDate,
+        completionDate: completionDate,
+        description: description,
+        file: file,
       );
-      // Refresh certifications after adding
-      await fetchCertifications();
-      AppLogger.success(_tag, 'addCertification succeeded');
-      return true;
-    } on DioException catch (e) {
-      _errorMessage = ApiException.fromDioException(e);
-      AppLogger.error(_tag, 'addCertification DioException', e);
-      notifyListeners();
+
+      if (success) {
+        await fetchCertifications();
+        return true;
+      }
+
       return false;
     } catch (e) {
       _errorMessage = e.toString();
-      AppLogger.error(_tag, 'addCertification error', e);
-      notifyListeners();
+      AppLogger.error(_tag, 'upload error', e);
       return false;
+    } finally {
+      _isUploading = false;
+      notifyListeners();
     }
   }
 
-  Future<bool> updateCertification(
-    String certificationId,
-    CertificationModel certification,
-  ) async {
-    AppLogger.info(_tag, 'updateCertification called');
-    try {
-      // TODO: Update endpoint based on API documentation
-      await _dio.put<dynamic>(
-        '/api/certifications/$certificationId',
-        data: certification.toJson(),
-      );
-      // Refresh certifications after updating
-      await fetchCertifications();
-      AppLogger.success(_tag, 'updateCertification succeeded');
-      return true;
-    } on DioException catch (e) {
-      _errorMessage = ApiException.fromDioException(e);
-      AppLogger.error(_tag, 'updateCertification DioException', e);
-      notifyListeners();
-      return false;
-    } catch (e) {
-      _errorMessage = e.toString();
-      AppLogger.error(_tag, 'updateCertification error', e);
-      notifyListeners();
-      return false;
-    }
+  void addLocalCertification(CertificateRequestModel cert) {
+    _certifications.insert(0, cert);
+    notifyListeners();
   }
 
-  Future<bool> deleteCertification(String certificationId) async {
-    AppLogger.info(_tag, 'deleteCertification called');
-    try {
-      // TODO: Update endpoint based on API documentation
-      await _dio.delete<dynamic>('/api/certifications/$certificationId');
-      // Refresh certifications after deleting
-      await fetchCertifications();
-      AppLogger.success(_tag, 'deleteCertification succeeded');
-      return true;
-    } on DioException catch (e) {
-      _errorMessage = ApiException.fromDioException(e);
-      AppLogger.error(_tag, 'deleteCertification DioException', e);
-      notifyListeners();
-      return false;
-    } catch (e) {
-      _errorMessage = e.toString();
-      AppLogger.error(_tag, 'deleteCertification error', e);
-      notifyListeners();
-      return false;
-    }
-  }
+  List<CertificateRequestModel> get pending =>
+      _certifications.where((c) => c.status == 'pending').toList();
+
+  List<CertificateRequestModel> get approved =>
+      _certifications.where((c) => c.status == 'approved').toList();
+
+  List<CertificateRequestModel> get rejected =>
+      _certifications.where((c) => c.status == 'rejected').toList();
 
   void clearError() {
-    AppLogger.info(_tag, 'clearError called');
     _errorMessage = null;
     notifyListeners();
   }
